@@ -39,6 +39,7 @@
 `include "simple_spi_master.v"
 `include "counter_timer_high.v"
 `include "counter_timer_low.v"
+`include "la_wb.v"
 `include "wb_intercon.v"
 `include "mem_wb.v"
 `include "convert_gpio_sigs.v"
@@ -62,11 +63,11 @@ module mgmt_core (
     output gpio_outenb_pad,	// Connect to oe_n on gpio pad
     output gpio_inenb_pad,	// Connect to inp_dis on gpio pad
 
-    // LA signals
-    input  [127:0] la_input,           	// From User Project to cpu
-    output [127:0] la_output,          	// From CPU to User Project
-    output [127:0] la_oenb,             // LA output enable (active low) 
-    output [127:0] la_iena,             // LA input enable (active high) 
+    // Logic analyzer signals
+    input  [127:0] la_input,		// From user project to CPU
+    output [127:0] la_output,		// From CPU to user project
+    output [127:0] la_oenb,		// Logic analyzer output enable
+    output [127:0] la_iena,		// Logic analyzer input enable
 
     // User Project pad data (when management SoC controls the pad)
     input [`MPRJ_IO_PADS-1:0] mgmt_in_data,
@@ -101,7 +102,7 @@ module mgmt_core (
     output flash_io2_oenb_state,
     output flash_io3_oenb_state,
 
-    // WB MI A (User project)
+    // Wishbone bus (exported to User project)
     input mprj_ack_i,
     input [31:0] mprj_dat_i,
     output mprj_cyc_o,
@@ -161,6 +162,7 @@ module mgmt_core (
     parameter COUNTER_TIMER0_BASE_ADR = 32'h 2200_0000;
     parameter COUNTER_TIMER1_BASE_ADR = 32'h 2300_0000;
     parameter SPI_MASTER_BASE_ADR = 32'h 2400_0000;
+    parameter LA_BASE_ADR     = 32'h 2500_0000;
     parameter HK_BASE_ADR     = 32'h 2600_0000;
     parameter FLASH_CTRL_CFG  = 32'h 2D00_0000;
     parameter MPRJ_BASE_ADR   = 32'h 3000_0000;   // WB MI A
@@ -188,7 +190,22 @@ module mgmt_core (
     parameter GPIO_ENA  = 8'h04;
     parameter GPIO_PU   = 8'h08;
     parameter GPIO_PD   = 8'h0c;
-    
+
+    // LA
+    parameter LA_DATA_0 = 8'h00;
+    parameter LA_DATA_1 = 8'h04;
+    parameter LA_DATA_2 = 8'h08;
+    parameter LA_DATA_3 = 8'h0c;
+    parameter LA_OENB_0  = 8'h10;
+    parameter LA_OENB_1  = 8'h14;
+    parameter LA_OENB_2  = 8'h18;
+    parameter LA_OENB_3  = 8'h1c;
+    parameter LA_IENA_0  = 8'h20;
+    parameter LA_IENA_1  = 8'h24;
+    parameter LA_IENA_2  = 8'h28;
+    parameter LA_IENA_3  = 8'h2c;
+    parameter LA_SAMPLE  = 8'h30;
+
     // System Control Registers
     parameter PWRGOOD       = 8'h00;
     parameter CLK_OUT       = 8'h04;
@@ -208,9 +225,10 @@ module mgmt_core (
     // Wishbone Interconnect 
     localparam ADR_WIDTH = 32;
     localparam DAT_WIDTH = 32;
-    localparam NUM_SLAVES = 12;
+    localparam NUM_SLAVES = 13;
 
     parameter [NUM_SLAVES*ADR_WIDTH-1: 0] ADR_MASK = {
+        {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
@@ -229,6 +247,7 @@ module mgmt_core (
         {FLASH_CTRL_CFG},
         {MPRJ_BASE_ADR},
         {HK_BASE_ADR},
+	{LA_BASE_ADR},
 	{SPI_MASTER_BASE_ADR},
 	{COUNTER_TIMER1_BASE_ADR},
 	{COUNTER_TIMER0_BASE_ADR},
@@ -425,7 +444,46 @@ module mgmt_core (
         .flash_io3_di (mgmt_in_data[(`MPRJ_IO_PADS)-1])
     );
 
-    // Wishbone Slave uart	
+    // Wishbone Logic Analyzer
+    wire la_stb_i;
+    wire la_ack_o;
+    wire [31:0] la_dat_o;
+
+    la_wb #(
+        .BASE_ADR(LA_BASE_ADR),
+        .LA_DATA_0(LA_DATA_0),
+        .LA_DATA_1(LA_DATA_1),
+        .LA_DATA_3(LA_DATA_3),
+        .LA_OENB_0(LA_OENB_0),
+        .LA_OENB_1(LA_OENB_1),
+        .LA_OENB_2(LA_OENB_2),
+        .LA_OENB_3(LA_OENB_3),
+        .LA_IENA_0(LA_IENA_0),
+        .LA_IENA_1(LA_IENA_1),
+        .LA_IENA_2(LA_IENA_2),
+        .LA_IENA_3(LA_IENA_3),
+        .LA_SAMPLE(LA_SAMPLE)
+    ) la (
+        .wb_clk_i(wb_clk_i),
+        .wb_rst_i(wb_rst_i),
+
+        .wb_adr_i(cpu_adr_o),
+        .wb_dat_i(cpu_dat_o),
+        .wb_sel_i(cpu_sel_o),
+        .wb_we_i(cpu_we_o),
+        .wb_cyc_i(cpu_cyc_o),
+
+        .wb_stb_i(la_stb_i),
+        .wb_ack_o(la_ack_o),
+        .wb_dat_o(la_dat_o),
+
+        .la_data(la_output),
+        .la_data_in(la_input),
+        .la_oenb(la_oenb),
+        .la_iena(la_iena)
+    );
+
+    // Wishbone UART
     wire uart_stb_i;
     wire uart_ack_o;
     wire [31:0] uart_dat_o;
@@ -679,15 +737,15 @@ module mgmt_core (
         .wbm_ack_o(cpu_ack_i),
 
         // Slaves Interface
-        .wbs_stb_o({ spimemio_cfg_stb_i, mprj_stb_o, hk_stb_o,
+        .wbs_stb_o({ spimemio_cfg_stb_i, mprj_stb_o, hk_stb_o, la_stb_i,
 		spi_master_stb_i, counter_timer1_stb_i, counter_timer0_stb_i,
 		gpio_stb_i, uart_stb_i,
 		spimemio_flash_stb_i, stg_ro_stb_i, stg_rw_stb_i, mem_stb_i }), 
-        .wbs_dat_i({ spimemio_cfg_dat_o, mprj_dat_i, hk_dat_i,
+        .wbs_dat_i({ spimemio_cfg_dat_o, mprj_dat_i, hk_dat_i, la_dat_o,
 		spi_master_dat_o, counter_timer1_dat_o, counter_timer0_dat_o,
 		gpio_dat_o, uart_dat_o,
 		spimemio_flash_dat_o, stg_ro_dat_o, stg_rw_dat_o, mem_dat_o }),
-        .wbs_ack_i({ spimemio_cfg_ack_o, mprj_ack_i, hk_ack_i,
+        .wbs_ack_i({ spimemio_cfg_ack_o, mprj_ack_i, hk_ack_i, la_ack_o,
 		spi_master_ack_o, counter_timer1_ack_o, counter_timer0_ack_o,
 		gpio_ack_o, uart_ack_o,
 		spimemio_flash_ack_o, stg_ro_ack_o, stg_rw_ack_o, mem_ack_o })

@@ -58,6 +58,12 @@ module mgmt_core_wrapper (
     output gpio_outenb_pad,	// Connect to oe_n on gpio pad
     output gpio_inenb_pad,	// Connect to inp_dis on gpio pad
 
+    // Logic analyzer signals
+    input  [127:0] la_input,            // From user project to CPU
+    output [127:0] la_output,           // From CPU to user project
+    output [127:0] la_oenb,             // Logic analyzer output enable
+    output [127:0] la_iena,             // Logic analyzer input enable
+
     // Flash memory control (SPI master)
     output flash_csb,
     output flash_clk,
@@ -146,6 +152,11 @@ module mgmt_core_wrapper (
     	.gpio_mode1_pad(gpio_mode1_pad),	// Connect to dm[2] on gpio pad
     	.gpio_outenb_pad(gpio_outenb_pad),	// Connect to oe_n on gpio pad
     	.gpio_inenb_pad(gpio_inenb_pad),	// Connect to inp_dis on gpio pad
+
+	.la_input(la_input),			// From user project to CPU
+	.la_output(la_output),			// From CPU to user project
+	.la_oenb(la_oenb),			// Logic analyzer output enable
+	.la_iena(la_iena),			// Logic analyzer input enable
 
         // IRQ
         .irq(irq),		// IRQ from SPI and user project
