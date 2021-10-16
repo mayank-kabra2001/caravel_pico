@@ -41,13 +41,11 @@
 `include "counter_timer_low.v"
 `include "wb_intercon.v"
 `include "mem_wb.v"
-`include "gpio_wb.v"
-`include "sysctrl.v"
 `include "convert_gpio_sigs.v"
 
 module mgmt_core (
 `ifdef USE_POWER_PINS
-    inout vdd1v8,	    /* 1.8V domain */
+    inout vdd,	    /* 1.8V domain */
     inout vss,
 `endif
     input clk,
@@ -70,23 +68,6 @@ module mgmt_core (
     output [127:0] la_oenb,             // LA output enable (active low) 
     output [127:0] la_iena,             // LA input enable (active high) 
 
-    // User Project I/O Configuration (serial load)
-    input  mprj_vcc_pwrgood,
-    input  mprj2_vcc_pwrgood,
-    input  mprj_vdd_pwrgood,
-    input  mprj2_vdd_pwrgood,
-    output mprj_io_loader_resetn,
-    output mprj_io_loader_clock,
-    output mprj_io_loader_data_1,
-    output mprj_io_loader_data_2,
-
-    // Bit-bang control of user project I/O configuration
-    input gpio_enable,
-    input gpio_resetn,
-    input gpio_clock,
-    input gpio_data_1,
-    input gpio_data_2,
-
     // User Project pad data (when management SoC controls the pad)
     input [`MPRJ_IO_PADS-1:0] mgmt_in_data,
     output [`MPRJ_IO_PADS-1:0] mgmt_out_data,
@@ -94,29 +75,16 @@ module mgmt_core (
     output [`MPRJ_PWR_PADS-1:0] pwr_ctrl_out,
 
     // IRQ
-    input  irq_spi,		// IRQ from standalone SPI
-    input [2:0] user_irq,	// IRQ from user project
-    output [2:0] user_irq_ena,	// enable IRQ from user project
+    input [5:0] irq,	// IRQ from standalone SPI
 
     // Flash memory control (SPI master)
     output flash_csb,
     output flash_clk,
 
-    output flash_csb_oeb,
-    output flash_clk_oeb,
-
     output flash_io0_oeb,
     output flash_io1_oeb,
     output flash_io2_oeb,
     output flash_io3_oeb,
-
-    output flash_csb_ieb,
-    output flash_clk_ieb,
-
-    output flash_io0_ieb,
-    output flash_io1_ieb,
-    output flash_io2_ieb,
-    output flash_io3_ieb,
 
     output flash_io0_do,
     output flash_io1_do,
@@ -126,23 +94,12 @@ module mgmt_core (
     input  flash_io2_di,
     input  flash_io3_di,
 
-    // SPI pass-thru mode
-    input  pass_thru_mgmt,
-    input  pass_thru_mgmt_csb,
-    input  pass_thru_mgmt_sck,
-    input  pass_thru_mgmt_sdi,
-    output pass_thru_mgmt_sdo,
-
     // State of JTAG and SDO pins (override for management output use)
     output sdo_oenb_state,
     output jtag_oenb_state,
     // State of flash_io2 and flash_io3 pins (override for management output use)
     output flash_io2_oenb_state,
     output flash_io3_oenb_state,
-    // SPI master->slave direct link
-    output hk_connect,
-    // User clock monitoring
-    input  user_clk,
 
     // WB MI A (User project)
     input mprj_ack_i,
@@ -153,6 +110,28 @@ module mgmt_core (
     output [3:0] mprj_sel_o,
     output [31:0] mprj_adr_o,
     output [31:0] mprj_dat_o,
+
+    // Additional wishbone signals for housekeeping
+    input [31:0] hk_dat_i,
+    output hk_stb_o,
+    input hk_ack_i,
+
+    // Module status
+    output qspi_enabled,
+    output uart_enabled,
+    output spi_enabled,
+    output debug_mode,
+
+    // Module I/O
+    output ser_tx,
+    input ser_rx,
+    output spi_csb,
+    output spi_sck,
+    output spi_sdo,
+    input spi_sdi,
+    input debug_in,
+    output debug_out,
+    output debug_oeb,
 
     // MGMT area R/W interface for mgmt RAM
     output [`RAM_BLOCKS-1:0] mgmt_ena, 
@@ -182,10 +161,8 @@ module mgmt_core (
     parameter COUNTER_TIMER0_BASE_ADR = 32'h 2200_0000;
     parameter COUNTER_TIMER1_BASE_ADR = 32'h 2300_0000;
     parameter SPI_MASTER_BASE_ADR = 32'h 2400_0000;
-    parameter LA_BASE_ADR     = 32'h 2500_0000;
-    parameter MPRJ_CTRL_ADR   = 32'h 2600_0000;
+    parameter HK_BASE_ADR     = 32'h 2600_0000;
     parameter FLASH_CTRL_CFG  = 32'h 2D00_0000;
-    parameter SYS_BASE_ADR    = 32'h 2F00_0000;
     parameter MPRJ_BASE_ADR   = 32'h 3000_0000;   // WB MI A
     
     // UART
@@ -212,21 +189,6 @@ module mgmt_core (
     parameter GPIO_PU   = 8'h08;
     parameter GPIO_PD   = 8'h0c;
     
-    // LA
-    parameter LA_DATA_0 = 8'h00;
-    parameter LA_DATA_1 = 8'h04;
-    parameter LA_DATA_2 = 8'h08;
-    parameter LA_DATA_3 = 8'h0c;
-    parameter LA_OENB_0  = 8'h10;
-    parameter LA_OENB_1  = 8'h14;
-    parameter LA_OENB_2  = 8'h18;
-    parameter LA_OENB_3  = 8'h1c;
-    parameter LA_IENA_0  = 8'h20;
-    parameter LA_IENA_1  = 8'h24;
-    parameter LA_IENA_2  = 8'h28;
-    parameter LA_IENA_3  = 8'h2c;
-    parameter LA_SAMPLE  = 8'h30;
-    
     // System Control Registers
     parameter PWRGOOD       = 8'h00;
     parameter CLK_OUT       = 8'h04;
@@ -246,11 +208,9 @@ module mgmt_core (
     // Wishbone Interconnect 
     localparam ADR_WIDTH = 32;
     localparam DAT_WIDTH = 32;
-    localparam NUM_SLAVES = 14;
+    localparam NUM_SLAVES = 12;
 
     parameter [NUM_SLAVES*ADR_WIDTH-1: 0] ADR_MASK = {
-        {8'hFF, {ADR_WIDTH-8{1'b0}}},
-        {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
@@ -266,11 +226,9 @@ module mgmt_core (
     };
 
     parameter [NUM_SLAVES*ADR_WIDTH-1: 0] SLAVE_ADR = {
-        {SYS_BASE_ADR},
         {FLASH_CTRL_CFG},
         {MPRJ_BASE_ADR},
-        {MPRJ_CTRL_ADR},
-        {LA_BASE_ADR},
+        {HK_BASE_ADR},
 	{SPI_MASTER_BASE_ADR},
 	{COUNTER_TIMER1_BASE_ADR},
 	{COUNTER_TIMER0_BASE_ADR},
@@ -321,6 +279,16 @@ module mgmt_core (
     wire irq_7_inputsrc;	// IRQ 7 source
     wire irq_8_inputsrc;	// IRQ 8 source
 
+    // To be added:  A usable debug mode.
+    wire debug_mode;
+    wire debug_out;
+    wire debug_oeb;
+
+    // Placeholder assignments for debugging port
+    assign debug_mode = 1'b0;
+    assign debug_out = 1'b0;
+    assign debug_oeb = 1'b1;
+
     // Convert GPIO signals to sky130_fd_io pad signals
     convert_gpio_sigs convert_gpio_bit (
         .gpio_out(gpio_out),
@@ -334,9 +302,7 @@ module mgmt_core (
         .gpio_mode0_pad(gpio_mode0_pad)
     );
 
-    reg [31:0] irq;
-    wire irq_7;
-    wire irq_8;
+    reg [31:0] irq_cpu;
     wire irq_stall;
     wire irq_uart;
     wire irq_spi_master;
@@ -348,20 +314,18 @@ module mgmt_core (
     wire wb_rst_i;
 
     assign irq_stall = 0;
-    assign irq_7 = (irq_7_inputsrc == 1'b1) ? mgmt_in_data[7] : 1'b0;
-    assign irq_8 = (irq_8_inputsrc == 1'b1) ? mgmt_in_data[12] : 1'b0;
 
     always @* begin
-        irq = 0;
-        irq[3] = irq_stall;
-        irq[4] = irq_uart;
-        irq[6] = irq_spi;
-        irq[7] = irq_7;
-        irq[8] = irq_8;
-        irq[9] = irq_spi_master;
-        irq[10] = irq_counter_timer0;
-        irq[11] = irq_counter_timer1;
-	irq[14:12] = user_irq;
+        irq_cpu = 0;
+        irq_cpu[3] = irq_stall;
+        irq_cpu[4] = irq_uart;
+        irq_cpu[6] = irq[0];
+        irq_cpu[7] = irq[1];
+        irq_cpu[8] = irq[2];
+        irq_cpu[9] = irq_spi_master;
+        irq_cpu[10] = irq_counter_timer0;
+        irq_cpu[11] = irq_counter_timer1;
+	irq_cpu[14:12] = irq[5:3];
     end
 
     // Assumption : no syscon module and wb_clk is the clock coming from the
@@ -395,7 +359,7 @@ module mgmt_core (
         .wb_clk_i (wb_clk_i),
         .wb_rst_i (wb_rst_i),
         .trap     (trap),
-        .irq      (irq),
+        .irq      (irq_cpu),
         .mem_instr(mem_instr),
         .wbm_adr_o(cpu_adr_o),     
         .wbm_dat_i(cpu_dat_i),    
@@ -440,31 +404,15 @@ module mgmt_core (
         .wb_cfg_ack_o(spimemio_cfg_ack_o),
         .wb_cfg_dat_o(spimemio_cfg_dat_o),
 
-        .quad_mode(spimemio_quad_mode),
-        .pass_thru(pass_thru_mgmt),
-        .pass_thru_csb(pass_thru_mgmt_csb),
-        .pass_thru_sck(pass_thru_mgmt_sck),
-        .pass_thru_sdi(pass_thru_mgmt_sdi),
-        .pass_thru_sdo(pass_thru_mgmt_sdo),
+        .quad_mode(qspi_enabled),
 
         .flash_csb (flash_csb),
         .flash_clk (flash_clk),
-
-        .flash_csb_oeb (flash_csb_oeb),
-        .flash_clk_oeb (flash_clk_oeb),
 
         .flash_io0_oeb (flash_io0_oeb),
         .flash_io1_oeb (flash_io1_oeb),
         .flash_io2_oeb (flash_io2_oeb),		// through GPIO 36
         .flash_io3_oeb (flash_io3_oeb),		// through GPIO 37
-
-        .flash_csb_ieb (flash_csb_ieb),
-        .flash_clk_ieb (flash_clk_ieb),
-
-        .flash_io0_ieb (flash_io0_ieb),
-        .flash_io1_ieb (flash_io1_ieb),
-        .flash_io2_ieb (),			// unused
-        .flash_io3_ieb (),			// unused
 
         .flash_io0_do (flash_io0_do),
         .flash_io1_do (flash_io1_do),
@@ -533,7 +481,6 @@ module mgmt_core (
         .wb_ack_o(spi_master_ack_o),
         .wb_dat_o(spi_master_dat_o),
 
-	.hk_connect(hk_connect),
 	.spi_enabled(spi_enabled),
         .csb(spi_csb),
         .sck(spi_sck),
@@ -644,84 +591,17 @@ module mgmt_core (
         .gpio_pd(gpio_pulldown)
     );
 
-    // Wishbone Slave System Control Register
-    wire sys_stb_i;
-    wire sys_ack_o;
-    wire [31:0] sys_dat_o;
-    
-    sysctrl_wb #(
-        .BASE_ADR(SYS_BASE_ADR),
-        .PWRGOOD(PWRGOOD),
-        .CLK_OUT(CLK_OUT),
-        .TRAP_OUT(TRAP_OUT),
-        .IRQ_SRC(IRQ_SRC)
-    ) sysctrl (
-        .wb_clk_i(wb_clk_i),
-        .wb_rst_i(wb_rst_i),
-
-        .wb_adr_i(cpu_adr_o), 
-        .wb_dat_i(cpu_dat_o),
-        .wb_sel_i(cpu_sel_o),
-        .wb_we_i(cpu_we_o),
-        .wb_cyc_i(cpu_cyc_o),
-        
-        .wb_stb_i(sys_stb_i),
-        .wb_ack_o(sys_ack_o),
-        .wb_dat_o(sys_dat_o),
-
-	.usr1_vcc_pwrgood(mprj_vcc_pwrgood),
-	.usr2_vcc_pwrgood(mprj2_vcc_pwrgood),
-	.usr1_vdd_pwrgood(mprj_vdd_pwrgood),
-	.usr2_vdd_pwrgood(mprj2_vdd_pwrgood),
-        .trap_output_dest(trap_output_dest),
-        .clk1_output_dest(clk1_output_dest),
-        .clk2_output_dest(clk2_output_dest),
-        .irq_7_inputsrc(irq_7_inputsrc),
-        .irq_8_inputsrc(irq_8_inputsrc)
-    );
-
-    // User project WB MI A port
+    // User project wishbone port
     assign mprj_cyc_o = cpu_cyc_o;
     assign mprj_we_o  = cpu_we_o;
     assign mprj_sel_o = cpu_sel_o;
     assign mprj_adr_o = cpu_adr_o;
     assign mprj_dat_o = cpu_dat_o;
 
-    // WB Slave User Project Control
+    // Wishbone User Project Control
     wire mprj_ctrl_stb_i;
     wire mprj_ctrl_ack_o;
     wire [31:0] mprj_ctrl_dat_o;
-    wire [`MPRJ_IO_PADS-1:0] mgmt_out_pre;
-
-    // Bits assigned to specific functions as outputs prevent the mprj
-    // GPIO-as-output from applying data when that function is active
-
-    assign mgmt_out_data[`MPRJ_IO_PADS-3:16] = mgmt_out_pre[`MPRJ_IO_PADS-3:16];
-
-    // spimemio module controls last two data out lines when in quad mode.
-    // These go to GPIO 36 and 37.  The input and OEB lines are routed
-    // individually and have their own independent signal names.
-
-    assign mgmt_out_data[`MPRJ_IO_PADS-1] = (spimemio_quad_mode) ?
-		flash_io3_do : mgmt_out_pre[`MPRJ_IO_PADS-1];
-    assign mgmt_out_data[`MPRJ_IO_PADS-2] = (spimemio_quad_mode) ?
-		flash_io2_do : mgmt_out_pre[`MPRJ_IO_PADS-2];
-
-    // Routing of output monitors (PLL, trap, clk1, clk2)
-    assign mgmt_out_data[15] = clk2_output_dest ? user_clk : mgmt_out_pre[15];
-    assign mgmt_out_data[14] = clk1_output_dest ? clk : mgmt_out_pre[14];
-    assign mgmt_out_data[13] = trap_output_dest ? trap : mgmt_out_pre[13];
-
-    assign mgmt_out_data[12:7] = mgmt_out_pre[12:7];
-    assign mgmt_out_data[6] = uart_enabled ? ser_tx : mgmt_out_pre[6];
-
-    assign mgmt_out_data[0] = mgmt_out_pre[0];
-    assign mgmt_out_data[1] = mgmt_out_pre[1];
-    assign mgmt_out_data[5] = mgmt_out_pre[5];
-
-    assign mgmt_out_data[2] = spi_enabled ? spi_sdo : mgmt_out_pre[2];
-    assign mgmt_out_data[3] = spi_enabled ? spi_csb : mgmt_out_pre[3];
-    assign mgmt_out_data[4] = spi_enabled ? spi_sck : mgmt_out_pre[4];
 
     // Wishbone Slave RAM
     wire mem_stb_i;
@@ -730,7 +610,7 @@ module mgmt_core (
 
     mem_wb soc_mem (
     `ifdef USE_POWER_PINS
-        .VPWR(vdd1v8),
+        .VPWR(vdd),
         .VGND(vss),
     `endif
         .wb_clk_i(wb_clk_i),
@@ -799,18 +679,15 @@ module mgmt_core (
         .wbm_ack_o(cpu_ack_i),
 
         // Slaves Interface
-        .wbs_stb_o({ sys_stb_i, spimemio_cfg_stb_i,
-		mprj_stb_o, mprj_ctrl_stb_i, la_stb_i, 
+        .wbs_stb_o({ spimemio_cfg_stb_i, mprj_stb_o, hk_stb_o,
 		spi_master_stb_i, counter_timer1_stb_i, counter_timer0_stb_i,
 		gpio_stb_i, uart_stb_i,
 		spimemio_flash_stb_i, stg_ro_stb_i, stg_rw_stb_i, mem_stb_i }), 
-        .wbs_dat_i({ sys_dat_o, spimemio_cfg_dat_o,
-		mprj_dat_i, mprj_ctrl_dat_o, la_dat_o,
+        .wbs_dat_i({ spimemio_cfg_dat_o, mprj_dat_i, hk_dat_i,
 		spi_master_dat_o, counter_timer1_dat_o, counter_timer0_dat_o,
 		gpio_dat_o, uart_dat_o,
-		spimemio_flash_dat_o, stg_ro_dat_o ,stg_rw_dat_o, mem_dat_o }),
-        .wbs_ack_i({ sys_ack_o, spimemio_cfg_ack_o,
-		mprj_ack_i, mprj_ctrl_ack_o, la_ack_o,
+		spimemio_flash_dat_o, stg_ro_dat_o, stg_rw_dat_o, mem_dat_o }),
+        .wbs_ack_i({ spimemio_cfg_ack_o, mprj_ack_i, hk_ack_i,
 		spi_master_ack_o, counter_timer1_ack_o, counter_timer0_ack_o,
 		gpio_ack_o, uart_ack_o,
 		spimemio_flash_ack_o, stg_ro_ack_o, stg_rw_ack_o, mem_ack_o })
