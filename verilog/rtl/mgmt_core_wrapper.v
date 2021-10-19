@@ -117,6 +117,12 @@ module mgmt_core_wrapper (
     output debug_out,
     output debug_oeb,
 
+    // SRAM read-only access from housekeeping
+    input hkspi_sram_clk,
+    input hkspi_sram_csb,
+    input [7:0] hkspi_sram_addr,
+    output [31:0] hkspi_sram_rdata,
+
     // Trap state from CPU
     output trap
 );
@@ -241,7 +247,13 @@ module mgmt_core_wrapper (
         // Management RO interface
         .mgmt_ena_ro(mgmt_ena_ro),
         .mgmt_addr_ro(mgmt_addr_ro),
-        .mgmt_rdata_ro(mgmt_rdata_ro)
+        .mgmt_rdata_ro(mgmt_rdata_ro),
+
+	// Housekeeping read-only interface
+	.hkspi_sram_clk(hkspi_sram_clk),
+	.hkspi_sram_csb(hkspi_sram_csb),
+	.hkspi_sram_addr(hkspi_sram_addr),
+	.hkspi_sram_rdata(hkspi_sram_rdata)
     );
 
 endmodule
