@@ -235,10 +235,10 @@ module mgmt_core_wrapper (
 
     storage storage(
         `ifdef USE_POWER_PINS
-            .VPWR(vccd_core),
-            .VGND(vssd_core),
+            .VPWR(VPWR),
+            .VGND(VGND),
         `endif
-        .mgmt_clk(caravel_clk),
+        .mgmt_clk(core_clk),
         .mgmt_ena(mgmt_ena),
         .mgmt_wen(mgmt_wen),
         .mgmt_wen_mask(mgmt_wen_mask),
