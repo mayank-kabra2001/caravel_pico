@@ -89,6 +89,8 @@ module mgmt_core (
 
     output flash_io0_do,
     output flash_io1_do,
+    output flash_io2_do,
+    output flash_io3_do,
 
     input  flash_io0_di,
     input  flash_io1_di,
@@ -400,6 +402,8 @@ module mgmt_core (
     wire [31:0] spimemio_cfg_dat_o;
     wire spimemio_quad_mode;
 
+    wire flash_io0_do;
+    wire flash_io1_do;
     wire flash_io2_do;
     wire flash_io3_do;
 

@@ -178,6 +178,8 @@ module mgmt_core_wrapper (
 
         .flash_io0_do(flash_io0_do),
         .flash_io1_do(flash_io1_do),
+        .flash_io2_do(flash_io2_do),
+        .flash_io3_do(flash_io3_do),
 
         .flash_io0_di(flash_io0_di),
         .flash_io1_di(flash_io1_di),
