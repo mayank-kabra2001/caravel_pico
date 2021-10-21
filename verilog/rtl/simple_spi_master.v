@@ -140,6 +140,7 @@ module simple_spi_master_wb #(
     	.csb(csb),	 // SPI chip select
     	.sck(sck),	 // SPI clock
     	.sdo(sdo),	 // SPI output
+    	.sdoenb(sdoenb), // SPI output enable (negative sense)
 	.irq_out(irq)	 // interrupt
     );
 endmodule
@@ -164,7 +165,8 @@ module simple_spi_master (
     input 	 sdi,	 // SPI input
     output 	 csb,	 // SPI chip select
     output 	 sck,	 // SPI clock
-    output 	 sdo	 // SPI output
+    output 	 sdo,	 // SPI output
+    output 	 sdoenb	 // SPI output enable (sense inverted)
 );
 
     parameter IDLE   = 2'b00;	    

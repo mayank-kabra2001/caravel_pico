@@ -125,6 +125,7 @@ module mgmt_core (
     output spi_csb,
     output spi_sck,
     output spi_sdo,
+    output spi_sdoenb,
     input spi_sdi,
     input debug_in,
     output debug_out,
@@ -493,7 +494,7 @@ module mgmt_core (
     wire spi_master_ack_o;
     wire [31:0] spi_master_dat_o;
     wire spi_enabled;
-    wire spi_csb, spi_sck, spi_sdo;
+    wire spi_csb, spi_sck, spi_sdo, spi_sdoenb;
 
     simple_spi_master_wb #(
         .BASE_ADR(SPI_MASTER_BASE_ADR),
@@ -519,7 +520,7 @@ module mgmt_core (
         .sck(spi_sck),
         .sdo(spi_sdo),
         .sdi(spi_sdi),
-        .sdoenb(),
+        .sdoenb(spi_sdoenb),
 	.irq(irq_spi_master)
     );
 
