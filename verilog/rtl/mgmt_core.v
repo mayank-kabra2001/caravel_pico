@@ -69,12 +69,6 @@ module mgmt_core (
     output [127:0] la_oenb,		// Logic analyzer output enable
     output [127:0] la_iena,		// Logic analyzer input enable
 
-    // User Project pad data (when management SoC controls the pad)
-    input [`MPRJ_IO_PADS-1:0] mgmt_in_data,
-    output [`MPRJ_IO_PADS-1:0] mgmt_out_data,
-    output [`MPRJ_IO_PADS-1:0] mgmt_oeb_data,
-    output [`MPRJ_PWR_PADS-1:0] pwr_ctrl_out,
-
     // IRQ
     input [5:0] irq,	// IRQ from standalone SPI
 
@@ -261,29 +255,6 @@ module mgmt_core (
         {RAM_BASE_ADR}
     };
 
-    // The following functions are connected to specific user project
-    // area pins, when under control of the management area (during
-    // startup, and when not otherwise programmed for the user project).
-
-    // JTAG      = jtag_out		 (inout)
-    // SDO       = sdo_out	         (output)   (shared with SPI master)
-    // SDI       = mgmt_in_data[2]       (input)    (shared with SPI master)
-    // CSB       = mgmt_in_data[3]       (input)    (shared with SPI master)
-    // SCK       = mgmt_in_data[4]       (input)    (shared with SPI master)
-    // ser_rx    = mgmt_in_data[5]       (input)
-    // ser_tx    = mgmt_out_data[6]      (output)
-    // irq_pin   = mgmt_in_data[7]       (input)
-    // flash_csb = mgmt_out_data[8]      (output)   (user area flash)
-    // flash_sck = mgmt_out_data[9]      (output)   (user area flash)
-    // flash_io0 = mgmt_in/out_data[10]  (input)    (user area flash)
-    // flash_io1 = mgmt_in/out_data[11]  (output)   (user area flash)
-    // irq2_pin	 = mgmt_in_data[12]	 (input)
-    // trap_mon	 = mgmt_in_data[13]	 (output)
-    // clk1_mon	 = mgmt_in_data[14]	 (output)
-    // clk2_mon	 = mgmt_in_data[15]	 (output)
-    // flash_io2 = mgmt_in_data[36]	 (inout)    (management area flash)
-    // flash_io3 = mgmt_in_data[37]	 (inout)    (management area flash)
-
     // OEB lines for [0] and [1] are the only ones connected directly to
     // the pad.  All others have OEB controlled by the configuration bit
     // in the control block.
@@ -444,8 +415,8 @@ module mgmt_core (
 
         .flash_io0_di (flash_io0_di),
         .flash_io1_di (flash_io1_di),
-        .flash_io2_di (mgmt_in_data[(`MPRJ_IO_PADS)-2]),
-        .flash_io3_di (mgmt_in_data[(`MPRJ_IO_PADS)-1])
+        .flash_io2_di (flash_io2_di),
+        .flash_io3_di (flash_io3_di)
     );
 
     // Wishbone Logic Analyzer
@@ -514,7 +485,7 @@ module mgmt_core (
 
 	.uart_enabled(uart_enabled),
         .ser_tx(ser_tx),
-        .ser_rx(mgmt_in_data[5])
+        .ser_rx(ser_rx)
     );
 
     // Wishbone SPI master
@@ -547,7 +518,7 @@ module mgmt_core (
         .csb(spi_csb),
         .sck(spi_sck),
         .sdo(spi_sdo),
-        .sdi(mgmt_in_data[1]),
+        .sdi(spi_sdi),
         .sdoenb(),
 	.irq(irq_spi_master)
     );
