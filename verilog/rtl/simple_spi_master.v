@@ -61,9 +61,6 @@
 // irqena:
 //     0 = disable interrupt
 //     1 = enable interrupt
-// hkconn:
-//     0 = housekeeping SPI disconnected
-//     1 = housekeeping SPI connected (when SPI master enabled)
 // prescaler: count (in master clock cycles) of 1/2 SCK cycle.
 //
 // reg_dat_we:
@@ -96,7 +93,6 @@ module simple_spi_master_wb #(
     output wb_ack_o,
     output [31:0] wb_dat_o,
 
-    output	 hk_connect,	// Connect to housekeeping SPI
     output	 spi_enabled,	// Use to mux pins with GPIO control
     input 	 sdi,	 // SPI input
     output 	 csb,	 // SPI chip select
@@ -139,7 +135,6 @@ module simple_spi_master_wb #(
     	.reg_dat_do(simple_spi_master_reg_dat_do),
     	.reg_dat_wait(reg_dat_wait),
 
-	.hk_connect(hk_connect),	// Attach to housekeeping SPI slave
 	.spi_enabled(spi_enabled),	// Mux pins with GPIO
     	.sdi(sdi),	 // SPI input
     	.csb(csb),	 // SPI chip select
@@ -165,7 +160,6 @@ module simple_spi_master (
     output	  irq_out,
     output	  err_out,
 
-    output	 hk_connect,	// Connect to housekeeping SPI
     output	 spi_enabled,	// Used to mux pins with GPIO
     input 	 sdi,	 // SPI input
     output 	 csb,	 // SPI chip select
@@ -203,7 +197,6 @@ module simple_spi_master (
     wire	  sck;
     wire	  sdo;
     wire	  sdoenb;
-    wire	  hk_connect;
     wire	  spi_enabled;
 
     // Define behavior for inverted SCK and inverted CSB
@@ -215,7 +208,6 @@ module simple_spi_master (
     assign	  sdo = isdo;
 
     assign	  irq_out = irqena & done;
-    assign	  hk_connect = (enable == 1'b1) ? hkconn : 1'b0;
     assign	  spi_enabled = enable;
 
     // Read configuration and data registers
