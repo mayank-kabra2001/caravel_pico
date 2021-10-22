@@ -34,11 +34,11 @@ module storage (
     input [7:0] mgmt_addr_ro,
     output [31:0] mgmt_rdata_ro,
 
-    // HKSPI RO Interface
-    input hkspi_sram_clk,
-    input hkspi_sram_csb, 
-    input [7:0] hkspi_sram_addr,
-    output [31:0] hkspi_sram_rdata
+    // SRAM Read-only Interface
+    input sram_ro_clk,
+    input sram_ro_csb, 
+    input [7:0] sram_ro_addr,
+    output [31:0] sram_ro_data
 );
 
     // Add buf_4 -> 2x buf_8 to suuply clock to each block. 
@@ -103,10 +103,10 @@ module storage (
         .addr0(mgmt_addr),
         .din0(mgmt_wdata),
         .dout0(mgmt_rdata[63:32]),
-        .clk1(hkspi_sram_clk),
-        .csb1(hkspi_sram_csb), 
-        .addr1(hkspi_sram_addr),
-        .dout1(hkspi_sram_rdata)
+        .clk1(sram_ro_clk),
+        .csb1(sram_ro_csb), 
+        .addr1(sram_ro_addr),
+        .dout1(sram_ro_data)
     );  
 
 endmodule
