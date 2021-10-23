@@ -257,7 +257,7 @@ module mgmt_core_wrapper (
 	.sram_ro_clk(sram_ro_clk),
 	.sram_ro_csb(sram_ro_csb),
 	.sram_ro_addr(sram_ro_addr),
-	.sram_ro_data(sram_ro_rdata)
+	.sram_ro_data(sram_ro_data)
     );
 
 endmodule
