@@ -40,6 +40,7 @@
 `include "counter_timer_high.v"
 `include "counter_timer_low.v"
 `include "la_wb.v"
+`include "sysctrl.v"
 `include "wb_intercon.v"
 `include "mem_wb.v"
 `include "convert_gpio_sigs.v"
@@ -70,7 +71,8 @@ module mgmt_core (
     output [127:0] la_iena,		// Logic analyzer input enable
 
     // IRQ
-    input [5:0] irq,	// IRQ from standalone SPI
+    input [5:0] irq,		// IRQ from standalone SPI
+    output [2:0] user_irq_ena,	// Enables for user area external IRQs
 
     // Flash memory control (SPI master)
     output flash_csb,
@@ -99,6 +101,7 @@ module mgmt_core (
     output flash_io3_oenb_state,
 
     // Wishbone bus (exported to User project)
+    output mprj_wb_iena,
     input mprj_ack_i,
     input [31:0] mprj_dat_i,
     output mprj_cyc_o,
@@ -161,7 +164,8 @@ module mgmt_core (
     parameter SPI_MASTER_BASE_ADR = 32'h 2400_0000;
     parameter LA_BASE_ADR     = 32'h 2500_0000;
     parameter HK_BASE_ADR     = 32'h 2600_0000;
-    parameter FLASH_CTRL_CFG  = 32'h 2D00_0000;
+    parameter FLASH_CTRL_CFG  = 32'h 2d00_0000;
+    parameter SYSCTL_BASE_ADR = 32'h 2f00_0000;
     parameter MPRJ_BASE_ADR   = 32'h 3000_0000;   // WB MI A
     
     // UART
@@ -222,9 +226,10 @@ module mgmt_core (
     // Wishbone Interconnect 
     localparam ADR_WIDTH = 32;
     localparam DAT_WIDTH = 32;
-    localparam NUM_SLAVES = 13;
+    localparam NUM_SLAVES = 14;
 
     parameter [NUM_SLAVES*ADR_WIDTH-1: 0] ADR_MASK = {
+        {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
         {8'hFF, {ADR_WIDTH-8{1'b0}}},
@@ -245,6 +250,7 @@ module mgmt_core (
         {MPRJ_BASE_ADR},
         {HK_BASE_ADR},
 	{LA_BASE_ADR},
+	{SYSCTL_BASE_ADR},
 	{SPI_MASTER_BASE_ADR},
 	{COUNTER_TIMER1_BASE_ADR},
 	{COUNTER_TIMER0_BASE_ADR},
@@ -625,6 +631,28 @@ module mgmt_core (
         .gpio_pd(gpio_pulldown)
     );
 
+    // Wishbone miscellaneous system controls
+    wire sysctl_stb_i;
+    wire sysctl_ack_o;
+    wire [31:0] sysctl_dat_o;
+
+    sysctrl_wb #(
+        .BASE_ADR(SYSCTL_BASE_ADR)
+    ) sysctrl_wb (
+        .wb_clk_i(wb_clk_i),
+        .wb_rst_i(wb_rst_i),
+        .wb_adr_i(cpu_adr_o), 
+        .wb_dat_i(cpu_dat_o),
+        .wb_sel_i(cpu_sel_o),
+        .wb_we_i(cpu_we_o),
+        .wb_cyc_i(cpu_cyc_o),
+        .wb_stb_i(sysctl_stb_i),
+        .wb_ack_o(sysctl_ack_o),
+        .wb_dat_o(sysctl_dat_o),
+	.user_irq_ena(user_irq_ena),
+	.mprj_wb_iena(mprj_wb_iena)
+    );
+
     // User project wishbone port
     assign mprj_cyc_o = cpu_cyc_o;
     assign mprj_we_o  = cpu_we_o;
@@ -714,15 +742,18 @@ module mgmt_core (
 
         // Slaves Interface
         .wbs_stb_o({ spimemio_cfg_stb_i, mprj_stb_o, hk_stb_o, la_stb_i,
-		spi_master_stb_i, counter_timer1_stb_i, counter_timer0_stb_i,
+		sysctl_stb_i, spi_master_stb_i,
+		counter_timer1_stb_i, counter_timer0_stb_i,
 		gpio_stb_i, uart_stb_i,
 		spimemio_flash_stb_i, stg_ro_stb_i, stg_rw_stb_i, mem_stb_i }), 
         .wbs_dat_i({ spimemio_cfg_dat_o, mprj_dat_i, hk_dat_i, la_dat_o,
-		spi_master_dat_o, counter_timer1_dat_o, counter_timer0_dat_o,
+		sysctl_dat_o, spi_master_dat_o,
+		counter_timer1_dat_o, counter_timer0_dat_o,
 		gpio_dat_o, uart_dat_o,
 		spimemio_flash_dat_o, stg_ro_dat_o, stg_rw_dat_o, mem_dat_o }),
         .wbs_ack_i({ spimemio_cfg_ack_o, mprj_ack_i, hk_ack_i, la_ack_o,
-		spi_master_ack_o, counter_timer1_ack_o, counter_timer0_ack_o,
+		sysctl_ack_o, spi_master_ack_o,
+		counter_timer1_ack_o, counter_timer0_ack_o,
 		gpio_ack_o, uart_ack_o,
 		spimemio_flash_ack_o, stg_ro_ack_o, stg_rw_ack_o, mem_ack_o })
     );

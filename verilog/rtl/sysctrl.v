@@ -13,13 +13,19 @@
 // limitations under the License.
 // SPDX-License-Identifier: Apache-2.0
 
+/* sysctrl defines a few signals that are required to be passed from
+ * the management SoC to the management protect block to avoid
+ * unconnected signals in the user project from reaching the managment
+ * SoC as unconnected signals.  The logic analyzer handles its own
+ * enables.  These signals are for the three user IRQ signals and the
+ * user wishbone (affecting return data and acknowledge).
+ */
+
 `default_nettype none
 module sysctrl_wb #(
     parameter BASE_ADR     = 32'h2F00_0000,
-    parameter PWRGOOD	   = 8'h00,
-    parameter CLK_OUT      = 8'h04,
-    parameter TRAP_OUT     = 8'h08,
-    parameter IRQ_SRC      = 8'h0c
+    parameter IRQ_ENA      = 8'h00,
+    parameter WB_ENA       = 8'h04
 ) (
     input wb_clk_i,
     input wb_rst_i,
@@ -34,16 +40,8 @@ module sysctrl_wb #(
     output [31:0] wb_dat_o,
     output wb_ack_o,
     
-    input  usr1_vcc_pwrgood,
-    input  usr2_vcc_pwrgood,
-    input  usr1_vdd_pwrgood,
-    input  usr2_vdd_pwrgood,
-    output clk1_output_dest,
-    output clk2_output_dest,
-    output trap_output_dest,
-    output irq_7_inputsrc,
-    output irq_8_inputsrc
-
+    output       mprj_wb_iena,
+    output [2:0] user_irq_ena
 );
 
     wire resetn;
@@ -59,10 +57,8 @@ module sysctrl_wb #(
     
     sysctrl #(
         .BASE_ADR(BASE_ADR),
-        .PWRGOOD(PWRGOOD),
-        .CLK_OUT(CLK_OUT),
-        .TRAP_OUT(TRAP_OUT),
-        .IRQ_SRC(IRQ_SRC)
+        .IRQ_ENA(IRQ_ENA),
+        .WB_ENA(WB_ENA)
     ) sysctrl (
         .clk(wb_clk_i),
         .resetn(resetn),
@@ -74,25 +70,16 @@ module sysctrl_wb #(
         .iomem_rdata(wb_dat_o),
         .iomem_ready(ready),
         
-	.usr1_vcc_pwrgood(usr1_vcc_pwrgood),
-	.usr2_vcc_pwrgood(usr2_vcc_pwrgood),
-	.usr1_vdd_pwrgood(usr1_vdd_pwrgood),
-	.usr2_vdd_pwrgood(usr2_vdd_pwrgood),
-        .clk1_output_dest(clk1_output_dest),
-        .clk2_output_dest(clk2_output_dest),
-        .trap_output_dest(trap_output_dest), 
-        .irq_8_inputsrc(irq_8_inputsrc),
-        .irq_7_inputsrc(irq_7_inputsrc)
+	.user_irq_ena(user_irq_ena),
+	.mprj_wb_iena(mprj_wb_iena)
     );
 
 endmodule
 
 module sysctrl #(
     parameter BASE_ADR = 32'h2300_0000,
-    parameter PWRGOOD	   = 8'h00,
-    parameter CLK_OUT      = 8'h04,
-    parameter TRAP_OUT     = 8'h08,
-    parameter IRQ_SRC      = 8'h0c
+    parameter IRQ_ENA      = 8'h00,
+    parameter WB_ENA       = 8'h04
 ) (
     input clk,
     input resetn,
@@ -104,72 +91,38 @@ module sysctrl #(
     output reg [31:0] iomem_rdata,
     output reg iomem_ready,
 
-    input  usr1_vcc_pwrgood,
-    input  usr2_vcc_pwrgood,
-    input  usr1_vdd_pwrgood,
-    input  usr2_vdd_pwrgood,
-    output clk1_output_dest,
-    output clk2_output_dest,
-    output trap_output_dest,
-    output irq_7_inputsrc,
-    output irq_8_inputsrc
+    output [2:0] user_irq_ena,
+    output 	 mprj_wb_iena
 ); 
 
-    reg clk1_output_dest;
-    reg clk2_output_dest;
-    reg trap_output_dest;
-    reg irq_7_inputsrc;
-    reg irq_8_inputsrc;
+    reg [2:0] user_irq_ena;
+    reg	      mprj_wb_iena;
 
-    wire usr1_vcc_pwrgood;
-    wire usr2_vcc_pwrgood;
-    wire usr1_vdd_pwrgood;
-    wire usr2_vdd_pwrgood;
-
-    wire pwrgood_sel;
-    wire clk_out_sel;
-    wire trap_out_sel;
     wire irq_sel;
+    wire wb_sel;
 
-    assign pwrgood_sel  = (iomem_addr[7:0] == PWRGOOD);
-    assign clk_out_sel  = (iomem_addr[7:0] == CLK_OUT);
-    assign trap_out_sel = (iomem_addr[7:0] == TRAP_OUT);
-    assign irq_sel  = (iomem_addr[7:0] == IRQ_SRC);
+    assign irq_sel = (iomem_addr[7:0] == IRQ_ENA);
+    assign wb_sel  = (iomem_addr[7:0] == WB_ENA);
 
     always @(posedge clk) begin
         if (!resetn) begin
-            clk1_output_dest <= 0;
-            clk2_output_dest <= 0;
-            trap_output_dest <= 0;
-            irq_7_inputsrc <= 0;
-            irq_8_inputsrc <= 0;
+	    mprj_wb_iena <= 0;
+	    user_irq_ena <= 0;
         end else begin
             iomem_ready <= 0;
             if (iomem_valid && !iomem_ready && iomem_addr[31:8] == BASE_ADR[31:8]) begin
                 iomem_ready <= 1'b 1;
                 
-                if (pwrgood_sel) begin
-                    iomem_rdata <= {28'd0, usr2_vdd_pwrgood, usr1_vdd_pwrgood,
-				usr2_vcc_pwrgood, usr1_vcc_pwrgood};
-		    // These are read-only bits;  no write behavior on wstrb.
-
-                end else if (clk_out_sel) begin
-                    iomem_rdata <= {30'd0, clk2_output_dest, clk1_output_dest};
+                if (wb_sel) begin
+                    iomem_rdata <= {31'd0, mprj_wb_iena};
                     if (iomem_wstrb[0]) begin
-                        clk1_output_dest <= iomem_wdata[0];
-                        clk2_output_dest <= iomem_wdata[1];
+			mprj_wb_iena <= iomem_wdata[0];
 		    end
 
-                end else if (trap_out_sel) begin
-                    iomem_rdata <= {31'd0, trap_output_dest};
-                    if (iomem_wstrb[0]) 
-                        trap_output_dest <= iomem_wdata[0];
-
                 end else if (irq_sel) begin
-                    iomem_rdata <= {30'd0, irq_8_inputsrc, irq_7_inputsrc};
+                    iomem_rdata <= {29'd0, user_irq_ena};
                     if (iomem_wstrb[0]) begin
-                        irq_7_inputsrc <= iomem_wdata[0];
-                        irq_8_inputsrc <= iomem_wdata[1];
+                        user_irq_ena <= iomem_wdata[2:0];
 		    end
                 end
             end

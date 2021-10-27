@@ -84,6 +84,7 @@ module mgmt_core_wrapper (
     input  flash_io3_di,
 
     // Exported Wishboned bus
+    output	  mprj_wb_iena,	// Enable for the user wishbone return signals
     output 	  mprj_cyc_o,
     output 	  mprj_stb_o,
     output 	  mprj_we_o,
@@ -99,6 +100,7 @@ module mgmt_core_wrapper (
 
     // IRQ
     input  [5:0] irq,		// IRQ from SPI and user project
+    output [2:0] user_irq_ena,	// Enables for user project IRQ
 
     // Module status
     output qspi_enabled,
@@ -167,6 +169,7 @@ module mgmt_core_wrapper (
 
         // IRQ
         .irq(irq),		// IRQ from SPI and user project
+	.user_irq_ena(user_irq_ena),
 
         // Flash memory control (SPI master)
         .flash_csb(flash_csb),
@@ -187,7 +190,8 @@ module mgmt_core_wrapper (
         .flash_io2_di(flash_io2_di),
         .flash_io3_di(flash_io3_di),
 
-        // WB MI A (User project)
+        // Exported wishbone bus (User project)
+	.mprj_wb_iena(mprj_wb_iena),
         .mprj_ack_i(mprj_ack_i),
         .mprj_dat_i(mprj_dat_i),
         .mprj_cyc_o(mprj_cyc_o),
