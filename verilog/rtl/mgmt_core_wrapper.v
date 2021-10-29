@@ -33,12 +33,8 @@
 /* Wrapper module around management SoC core for pin compatibility	*/
 /* with the Caravel harness chip.					*/
 
-`include "storage.v"
 `include "DFFRAM.v"
 `include "DFFRAMBB.v"
-`include "sram_1rw1r_32_256_8_sky130.v"
-`include "storage_bridge_wb.v"
-`include "gpio_wb.v"
 `include "mgmt_core.v"
 
 module mgmt_core_wrapper (
@@ -130,16 +126,12 @@ module mgmt_core_wrapper (
     output trap
 );
 
-    wire [`RAM_BLOCKS-1:0] mgmt_ena;
-    wire [(`RAM_BLOCKS*4)-1:0] mgmt_wen_mask;
-    wire [`RAM_BLOCKS-1:0] mgmt_wen;
-    wire [7:0] mgmt_addr;
-    wire [31:0] mgmt_wdata;
-    wire [(`RAM_BLOCKS*32)-1:0] mgmt_rdata;
-
-    wire mgmt_ena_ro;
-    wire [7:0] mgmt_addr_ro;
-    wire [31:0] mgmt_rdata_ro;
+    // Memory Interface 
+    wire mem_ena;
+    wire [3:0] mem_wen;
+    wire [7:0] mem_addr;
+    wire [31:0] mem_wdata;
+    wire [31:0] mem_rdata; 
 
     /* Implement the PicoSoC core */
 
@@ -162,14 +154,14 @@ module mgmt_core_wrapper (
     	.gpio_outenb_pad(gpio_outenb_pad),	// Connect to oe_n on gpio pad
     	.gpio_inenb_pad(gpio_inenb_pad),	// Connect to inp_dis on gpio pad
 
-	.la_input(la_input),			// From user project to CPU
-	.la_output(la_output),			// From CPU to user project
-	.la_oenb(la_oenb),			// Logic analyzer output enable
-	.la_iena(la_iena),			// Logic analyzer input enable
+        .la_input(la_input),			// From user project to CPU
+        .la_output(la_output),			// From CPU to user project
+        .la_oenb(la_oenb),			// Logic analyzer output enable
+        .la_iena(la_iena),			// Logic analyzer input enable
 
         // IRQ
         .irq(irq),		// IRQ from SPI and user project
-	.user_irq_ena(user_irq_ena),
+	    .user_irq_ena(user_irq_ena),
 
         // Flash memory control (SPI master)
         .flash_csb(flash_csb),
@@ -191,7 +183,7 @@ module mgmt_core_wrapper (
         .flash_io3_di(flash_io3_di),
 
         // Exported wishbone bus (User project)
-	.mprj_wb_iena(mprj_wb_iena),
+	    .mprj_wb_iena(mprj_wb_iena),
         .mprj_ack_i(mprj_ack_i),
         .mprj_dat_i(mprj_dat_i),
         .mprj_cyc_o(mprj_cyc_o),
@@ -201,9 +193,9 @@ module mgmt_core_wrapper (
         .mprj_adr_o(mprj_adr_o),
         .mprj_dat_o(mprj_dat_o),
 
-	.hk_stb_o(hk_stb_o),
-	.hk_dat_i(hk_dat_i),
-	.hk_ack_i(hk_ack_i),
+        .hk_stb_o(hk_stb_o),
+        .hk_dat_i(hk_dat_i),
+        .hk_ack_i(hk_ack_i),
 
     	// Module status
     	.qspi_enabled(qspi_enabled),
@@ -223,45 +215,29 @@ module mgmt_core_wrapper (
     	.debug_out(debug_out),
     	.debug_oeb(debug_oeb),
 
-        // MGMT area R/W interface for mgmt RAM
-        .mgmt_ena(mgmt_ena), 
-        .mgmt_wen_mask(mgmt_wen_mask),
-        .mgmt_wen(mgmt_wen),
-        .mgmt_addr(mgmt_addr),
-        .mgmt_wdata(mgmt_wdata),
-        .mgmt_rdata(mgmt_rdata),
-
-        // MGMT area RO interface for user RAM 
-        .mgmt_ena_ro(mgmt_ena_ro),
-        .mgmt_addr_ro(mgmt_addr_ro),
-        .mgmt_rdata_ro(mgmt_rdata_ro)
+        // DFFRAM Interface 
+        .mem_wen (mem_wen),
+        .mem_ena (mem_ena),
+        .mem_wdata  (mem_wdata),
+        .mem_rdata  (mem_rdata),
+        .mem_addr (mem_addr)
     );
 
-    /* Storage (memory) area */
-
-    storage storage(
-        `ifdef USE_POWER_PINS
-            .VPWR(VPWR),
-            .VGND(VGND),
-        `endif
-        .mgmt_clk(core_clk),
-        .mgmt_ena(mgmt_ena),
-        .mgmt_wen(mgmt_wen),
-        .mgmt_wen_mask(mgmt_wen_mask),
-        .mgmt_addr(mgmt_addr),
-        .mgmt_wdata(mgmt_wdata),
-        .mgmt_rdata(mgmt_rdata),
-
-        // Management RO interface
-        .mgmt_ena_ro(mgmt_ena_ro),
-        .mgmt_addr_ro(mgmt_addr_ro),
-        .mgmt_rdata_ro(mgmt_rdata_ro),
-
-	// Housekeeping read-only interface
-	.sram_ro_clk(sram_ro_clk),
-	.sram_ro_csb(sram_ro_csb),
-	.sram_ro_addr(sram_ro_addr),
-	.sram_ro_data(sram_ro_data)
+    // DFFRAM
+    DFFRAM #(
+        .WSIZE(`DFFRAM_WSIZE), 
+        .USE_LATCH(`DFFRAM_USE_LATCH)
+    ) DFFRAM (
+    `ifdef USE_POWER_PINS
+        .VPWR(VPWR),
+        .VGND(VGND),
+    `endif
+        .CLK(core_clk),
+        .WE(mem_wen),
+        .EN(mem_ena),
+        .Di(mem_wdata),
+        .Do(mem_rdata),
+        .A(mem_addr)   // 8-bit address if using the default custom DFF RAM
     );
 
 endmodule

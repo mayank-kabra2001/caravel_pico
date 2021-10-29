@@ -30,8 +30,15 @@ module mem_wb (
     input wb_stb_i,
 
     output wb_ack_o,
-    output [31:0] wb_dat_o
-    
+    output [31:0] wb_dat_o,
+
+    // Memory Interface 
+    output mem_ena, 
+    output [3:0] mem_wen,
+    output [7:0] mem_addr,
+    output [31:0] mem_wdata,
+
+    input [31:0] mem_rdata 
 );
 
     localparam ADR_WIDTH = $clog2(`MEM_WORDS);
@@ -65,77 +72,12 @@ module mem_wb (
         end
     end
 
-    soc_mem
-`ifndef USE_OPENRAM
-    #(
-        .WORDS(`MEM_WORDS),
-        .ADR_WIDTH(ADR_WIDTH)
-    )
-`endif
-     mem (
-    `ifdef USE_POWER_PINS
-        .VPWR(VPWR),
-        .VGND(VGND),
-    `endif
-        .clk(wb_clk_i),
-        .ena(valid),
-        .wen(wen),
-        .addr(wb_adr_i[ADR_WIDTH+1:2]),
-        .wdata(wb_dat_i),
-        .rdata(wb_dat_o)
-    );
+    assign mem_ena = valid; 
+    assign mem_wen = wen;
+    assign mem_addr = wb_adr_i[ADR_WIDTH+1:2];
+    assign mem_wdata = wb_dat_i;
+    assign wb_dat_o = mem_rdata;
 
 endmodule
 
-module soc_mem 
-`ifndef USE_OPENRAM
-#(
-    parameter integer WORDS = 256,
-    parameter ADR_WIDTH = 8
-)
-`endif
- ( 
-`ifdef USE_POWER_PINS
-    input VPWR,
-    input VGND,
-`endif
-    input clk,
-    input ena,
-    input [3:0] wen,
-    input [ADR_WIDTH-1:0] addr,
-    input [31:0] wdata,
-    output[31:0] rdata
-);
-
-`ifndef USE_OPENRAM
-    DFFRAM #(.WSIZE(`DFFRAM_WSIZE), .USE_LATCH(`DFFRAM_USE_LATCH)) SRAM (
-    `ifdef USE_POWER_PINS
-        .VPWR(VPWR),
-        .VGND(VGND),
-    `endif
-        .CLK(clk),
-        .WE(wen),
-        .EN(ena),
-        .Di(wdata),
-        .Do(rdata),
-        // 8-bit address if using the default custom DFF RAM
-        .A(addr)
-    );
-`else
-    
-    /* Using Port 0 Only - Size: 1KB, 256x32 bits */
-    //sram_1rw1r_32_256_8_scn4m_subm 
-    sram_1rw1r_32_256_8_sky130 SRAM(
-            .clk0(clk), 
-            .csb0(~ena), 
-            .web0(~|wen),
-            .wmask0(wen),
-            .addr0(addr[7:0]),
-            .din0(wdata),
-            .dout0(rdata)
-      );
-
-`endif
-
-endmodule
 `default_nettype wire

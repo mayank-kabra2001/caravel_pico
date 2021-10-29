@@ -36,6 +36,10 @@
 `include "picorv32.v"
 `include "spimemio.v"
 `include "simpleuart.v"
+`include "storage.v"
+`include "gpio_wb.v"
+`include "sky130_sram_1kbyte_1rw1r_32x256_8.v"
+`include "storage_bridge_wb.v"
 `include "simple_spi_master.v"
 `include "counter_timer_high.v"
 `include "counter_timer_low.v"
@@ -134,18 +138,19 @@ module mgmt_core (
     output debug_out,
     output debug_oeb,
 
-    // MGMT area R/W interface for mgmt RAM
-    output [`RAM_BLOCKS-1:0] mgmt_ena, 
-    output [(`RAM_BLOCKS*4)-1:0] mgmt_wen_mask,
-    output [`RAM_BLOCKS-1:0] mgmt_wen,
-    output [7:0] mgmt_addr,
-    output [31:0] mgmt_wdata,
-    input  [(`RAM_BLOCKS*32)-1:0] mgmt_rdata,
+    // Memory Interface 
+    output mem_ena, 
+    output [3:0] mem_wen,
+    output [7:0] mem_addr,
+    output [31:0] mem_wdata,
 
-    // MGMT area RO interface for user RAM 
-    output mgmt_ena_ro,
-    output [7:0] mgmt_addr_ro,
-    input  [31:0] mgmt_rdata_ro
+    input [31:0] mem_rdata,
+    
+    // SRAM read-only access from housekeeping
+    input sram_ro_clk,
+    input sram_ro_csb,
+    input [7:0] sram_ro_addr,
+    output [31:0] sram_ro_data
 );
     /* Memory reverted back to 256 words while memory has to be synthesized */
     parameter [31:0] STACKADDR = (4*(`MEM_WORDS));       // end of memory
@@ -686,7 +691,14 @@ module mgmt_core (
 
         .wb_stb_i(mem_stb_i),
         .wb_ack_o(mem_ack_o), 
-        .wb_dat_o(mem_dat_o)
+        .wb_dat_o(mem_dat_o),
+
+        // memory interface
+        .mem_ena (mem_ena),
+        .mem_wen (mem_wen),
+        .mem_addr (mem_addr),
+        .mem_wdata (mem_wdata),
+        .mem_rdata (mem_rdata)
     );
 
     wire stg_rw_stb_i;
@@ -695,6 +707,15 @@ module mgmt_core (
     wire stg_ro_ack_o;
     wire [31:0] stg_rw_dat_o;
     wire [31:0] stg_ro_dat_o;
+
+    wire [1:0] mgmt_ena;
+    wire [7:0] mgmt_wen_mask;
+    wire [1:0] mgmt_wen;
+    wire [7:0] mgmt_addr;
+    wire [31:0] mgmt_wdata;
+    wire [63:0] mgmt_rdata;
+    wire [7:0] mgmt_addr_ro;
+    wire [31:0] mgmt_rdata_ro;
 
     // Storage area wishbone brige
     storage_bridge_wb #(
@@ -724,6 +745,33 @@ module mgmt_core (
         .mgmt_ena_ro(mgmt_ena_ro),
         .mgmt_addr_ro(mgmt_addr_ro),
         .mgmt_rdata_ro(mgmt_rdata_ro)
+    );
+
+    /* Storage (memory) area */
+
+    storage storage(
+    `ifdef USE_POWER_PINS
+        .VPWR(VPWR),
+        .VGND(VGND),
+    `endif
+        .mgmt_clk(wb_clk_i),
+        .mgmt_ena(mgmt_ena),
+        .mgmt_wen(mgmt_wen),
+        .mgmt_wen_mask(mgmt_wen_mask),
+        .mgmt_addr(mgmt_addr),
+        .mgmt_wdata(mgmt_wdata),
+        .mgmt_rdata(mgmt_rdata),
+
+        // Management RO interface
+        .mgmt_ena_ro(mgmt_ena_ro),
+        .mgmt_addr_ro(mgmt_addr_ro),
+        .mgmt_rdata_ro(mgmt_rdata_ro),
+
+	    // Housekeeping read-only interface
+        .sram_ro_clk(sram_ro_clk),
+        .sram_ro_csb(sram_ro_csb),
+        .sram_ro_addr(sram_ro_addr),
+        .sram_ro_data(sram_ro_data)
     );
 
     // Wishbone intercon logic
