@@ -78,7 +78,8 @@ module storage (
         .X(mgmt_clk_sram1)
     );
 
-    sram_1rw1r_32_256_8_sky130 SRAM_0 (
+
+    sky130_sram_1kbyte_1rw1r_32x256_8 SRAM_0 (
         // MGMT R/W port
         .clk0(mgmt_clk_sram0), 
         .csb0(mgmt_ena[0]),   
@@ -94,7 +95,8 @@ module storage (
         .dout1(mgmt_rdata_ro)
     ); 
 
-    sram_1rw1r_32_256_8_sky130 SRAM_1 (
+
+    sky130_sram_1kbyte_1rw1r_32x256_8 SRAM_1 (
         // MGMT R/W port
         .clk0(mgmt_clk_sram1), 
         .csb0(mgmt_ena[1]),   
@@ -103,6 +105,7 @@ module storage (
         .addr0(mgmt_addr),
         .din0(mgmt_wdata),
         .dout0(mgmt_rdata[63:32]),
+        // Housekeeping RO port
         .clk1(sram_ro_clk),
         .csb1(sram_ro_csb), 
         .addr1(sram_ro_addr),

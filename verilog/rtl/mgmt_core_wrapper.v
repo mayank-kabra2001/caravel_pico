@@ -36,7 +36,7 @@
 `include "storage.v"
 `include "DFFRAM.v"
 `include "DFFRAMBB.v"
-`include "sram_1rw1r_32_256_8_sky130.v"
+`include "sky130_sram_1kbyte_1rw1r_32x256_8.v"
 `include "storage_bridge_wb.v"
 `include "gpio_wb.v"
 `include "mgmt_core.v"
