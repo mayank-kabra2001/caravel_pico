@@ -216,11 +216,17 @@ module mgmt_core_wrapper (
     	.debug_oeb(debug_oeb),
 
         // DFFRAM Interface 
-        .mem_wen (mem_wen),
-        .mem_ena (mem_ena),
-        .mem_wdata  (mem_wdata),
-        .mem_rdata  (mem_rdata),
-        .mem_addr (mem_addr)
+        .mem_wen(mem_wen),
+        .mem_ena(mem_ena),
+        .mem_wdata(mem_wdata),
+        .mem_rdata(mem_rdata),
+        .mem_addr(mem_addr),
+
+        // SRAM read-only access from housekeeping
+        .sram_ro_clk(sram_ro_clk),
+        .sram_ro_csb(sram_ro_csb),
+        .sram_ro_addr(sram_ro_addr),
+        .sram_ro_data(sram_ro_data)
     );
 
     // DFFRAM
