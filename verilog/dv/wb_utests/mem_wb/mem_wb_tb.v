@@ -53,6 +53,12 @@ module mem_wb_tb;
     wire [31:0] wb_dat_o;
     reg power1;
 
+    wire mem_ena;
+    wire [3:0] mem_wen;
+    wire [7:0] mem_addr;
+    wire [31:0] mem_wdata;
+    wire [31:0] mem_rdata;
+
     initial begin
         wb_clk_i = 0;
         wb_rst_i = 0;
@@ -169,10 +175,10 @@ module mem_wb_tb;
     endtask
 
     mem_wb uut(
-        `ifdef USE_POWER_PINS
-            .VPWR(VPWR),
-            .VGND(VGND),
-        `endif
+    `ifdef USE_POWER_PINS
+        .VPWR(VPWR),
+        .VGND(VGND),
+    `endif
         .wb_clk_i(wb_clk_i),
         .wb_rst_i(wb_rst_i),
 
@@ -184,7 +190,27 @@ module mem_wb_tb;
         .wb_stb_i(wb_stb_i),
 
         .wb_ack_o(wb_ack_o),
-        .wb_dat_o(wb_dat_o)
+        .wb_dat_o(wb_dat_o),
+
+        // Memory Interface 
+        .mem_ena(mem_ena), 
+        .mem_wen(mem_wen),
+        .mem_addr(mem_addr),
+        .mem_wdata(mem_wdata),
+        .mem_rdata(mem_rdata) 
+    );
+
+    DFFRAM DFFRAM (
+    `ifdef USE_POWER_PINS
+        .VPWR(VPWR),
+        .VGND(VGND),
+    `endif
+        .CLK(wb_clk_i),
+        .WE(mem_wen),
+        .EN(mem_ena),
+        .Di(mem_wdata),
+        .Do(mem_rdata),
+        .A(mem_addr)
     );
 
 endmodule
