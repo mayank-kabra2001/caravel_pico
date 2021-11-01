@@ -396,7 +396,7 @@ port 80 nsew signal input
 string LEFclass BLOCK
 string FIXED_BBOX 0 0 170000 110000
 string LEFview TRUE
-string GDS_FILE /project/openlane/DFFRAM/runs/DFFRAM/results/magic/DFFRAM.gds
+string GDS_FILE ../gds/DFFRAM.gds
 string GDS_END 63571948
 string GDS_START 252880
 << end >>

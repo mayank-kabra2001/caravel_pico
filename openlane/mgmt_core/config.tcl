@@ -72,16 +72,16 @@ set ::env(VERILOG_FILES) "\
 
 set ::env(VERILOG_FILES_BLACKBOX) "\
 	$script_dir/../../verilog/rtl/defines.v\
-	$script_dir/../../verilog/rtl/sky130_sram_1kbyte_1rw1r_32x256_8.v"
+	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/verilog/sky130_sram_1kbyte_1rw1r_32x256_8.v"
 
 set ::env(EXTRA_LEFS) "\
-	$script_dir/../../lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef"
+	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lef/sky130_sram_1kbyte_1rw1r_32x256_8.lef"
 
 set ::env(EXTRA_GDS_FILES) "\
-	$script_dir/../../gds/sky130_sram_1kbyte_1rw1r_32x256_8.gds"
+	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/gds/sky130_sram_1kbyte_1rw1r_32x256_8.gds"
 
 set ::env(EXTRA_LIBS) "\
-	$script_dir/../../lib/sky130_sram_1kbyte_1rw1r_32x256_8.lib"
+	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_1kbyte_1rw1r_32x256_8.lib"
 
 set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 0
 set ::env(PL_RESIZER_MAX_CAP_MARGIN) 0
