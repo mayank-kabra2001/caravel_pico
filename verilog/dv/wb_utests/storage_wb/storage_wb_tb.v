@@ -23,9 +23,9 @@
 
 `include "libs.ref/sky130_fd_sc_hd/verilog/primitives.v"
 `include "libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v"
+`include "libs.ref/sky130_sram_macros/verilog/sky130_sram_1kbyte_1rw1r_32x256_8.v"
 
 `include "defines.v"
-`include "sram_1rw1r_32_256_8_sky130.v"
 
 `ifdef GL
     `include "gl/storage.v"
