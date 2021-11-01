@@ -89717,7 +89717,7 @@ use sky130_fd_sc_hd__decap_4  FILLER_166_969
 timestamp 1624015447
 transform 1 0 90252 0 -1 93024
 box -38 -48 406 592
-use sram_1rw1r_32_256_8_sky130  SRAM_0
+use sky130_sram_1kbyte_1rw1r_32x256_8  SRAM_0
 timestamp 1624446551
 transform 1 0 6000 0 1 2361
 box 0 0 77296 91247
@@ -101141,7 +101141,7 @@ use sky130_fd_sc_hd__decap_4  FILLER_334_969
 timestamp 1624015447
 transform 1 0 90252 0 -1 184416
 box -38 -48 406 592
-use sram_1rw1r_32_256_8_sky130  SRAM_1
+use sky130_sram_1kbyte_1rw1r_32x256_8  SRAM_1
 timestamp 1624446551
 transform 1 0 6000 0 1 96408
 box 0 0 77296 91247

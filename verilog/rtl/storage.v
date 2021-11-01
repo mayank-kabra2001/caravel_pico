@@ -66,6 +66,7 @@ module storage (
         .addr0(mgmt_addr),
         .din0(mgmt_wdata),
         .dout0(mgmt_rdata[63:32]),
+        // Housekeeping RO port
         .clk1(sram_ro_clk),
         .csb1(sram_ro_csb), 
         .addr1(sram_ro_addr),
