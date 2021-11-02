@@ -16,6 +16,8 @@
 set script_dir [file dirname [file normalize [info script]]]
 # User config
 set ::env(DESIGN_NAME) DFFRAM
+set ::env(DESIGN_IS_CORE) 1
+
 set ::env(ROUTING_CORES) 8
 set ::env(RUN_KLAYOUT) 0
 
@@ -35,12 +37,16 @@ set ::env(CLOCK_PORT) "CLK"
 set ::env(CLOCK_TREE_SYNTH) 1
 
 set ::env(FP_PIN_ORDER_CFG) $::env(DESIGN_DIR)/pin_order.cfg
+set ::env(FP_PDN_CORE_RING) 1
 
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 850 550"
+set ::env(DIE_AREA) "0 0 550 740"
+
+set ::env(LEFT_MARGIN_MULT) 22
+set ::env(RIGHT_MARGIN_MULT) 22
 
 set ::env(GLB_RT_ADJUSTMENT) 0.15
-set ::env(GLB_RT_MAXLAYER) 5
+#set ::env(GLB_RT_MAXLAYER) 5
 
 set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.85
 set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.85
@@ -49,7 +55,7 @@ set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 1
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 0
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
 
-set ::env(PL_TARGET_DENSITY) 0.85
+set ::env(PL_TARGET_DENSITY) 0.84
 
 set ::env(CELL_PAD) 0
 set ::env(DIODE_INSERTION_STRATEGY) 4

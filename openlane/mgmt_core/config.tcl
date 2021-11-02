@@ -37,10 +37,10 @@ set ::env(FP_PDN_HPITCH) 130
 
 set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 2250 840"
+set ::env(DIE_AREA) "0 0 2250 740"
 
 set ::env(MACRO_PLACEMENT_CFG) $script_dir/macro_placement.cfg
-set ::env(PL_TARGET_DENSITY) 0.18
+set ::env(PL_TARGET_DENSITY) 0.215
 set ::env(CELL_PAD) 0
 
 # Disable resizer design optimizations to prevent adding a buffer after tristate cells
@@ -59,10 +59,6 @@ set ::env(GLB_RT_L5_ADJUSTMENT) 0.1
 set ::env(GLB_RT_L6_ADJUSTMENT) 0.1
 set ::env(GLB_RT_ALLOW_CONGESTION) 0
 set ::env(GLB_RT_OVERFLOW_ITERS) 200
-
-# Add met4 routing obstruction on DFFRAM macro
-# set ::env(GLB_RT_OBS) "\
-#    met4 122.000 111.000 872.000 636.000"
 
 set ::env(DIODE_INSERTION_STRATEGY) 4
 
