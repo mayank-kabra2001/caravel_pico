@@ -38,7 +38,6 @@
 `include "simpleuart.v"
 `include "storage.v"
 `include "gpio_wb.v"
-`include "sky130_sram_1kbyte_1rw1r_32x256_8.v"
 `include "storage_bridge_wb.v"
 `include "simple_spi_master.v"
 `include "counter_timer_high.v"
