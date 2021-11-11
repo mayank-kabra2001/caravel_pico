@@ -96,13 +96,6 @@ module mgmt_core (
     input  flash_io2_di,
     input  flash_io3_di,
 
-    // State of JTAG and SDO pins (override for management output use)
-    output sdo_oenb_state,
-    output jtag_oenb_state,
-    // State of flash_io2 and flash_io3 pins (override for management output use)
-    output flash_io2_oenb_state,
-    output flash_io3_oenb_state,
-
     // Wishbone bus (exported to User project)
     output mprj_wb_iena,
     input mprj_ack_i,
