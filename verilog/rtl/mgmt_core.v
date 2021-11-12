@@ -219,7 +219,6 @@ module mgmt_core (
 
     // Storage area RAM blocks
     parameter [(`RAM_BLOCKS*24)-1:0] RW_BLOCKS_ADR = {
-        {24'h 10_0000},
         {24'h 00_0000}
     };
 
@@ -253,11 +252,11 @@ module mgmt_core (
         {FLASH_CTRL_CFG},
         {MPRJ_BASE_ADR},
         {HK_BASE_ADR},
-	{LA_BASE_ADR},
-	{SYSCTL_BASE_ADR},
-	{SPI_MASTER_BASE_ADR},
-	{COUNTER_TIMER1_BASE_ADR},
-	{COUNTER_TIMER0_BASE_ADR},
+        {LA_BASE_ADR},
+        {SYSCTL_BASE_ADR},
+        {SPI_MASTER_BASE_ADR},
+        {COUNTER_TIMER1_BASE_ADR},
+        {COUNTER_TIMER0_BASE_ADR},
         {GPIO_BASE_ADR},
         {UART_BASE_ADR},
         {FLASH_BASE_ADR},
@@ -707,12 +706,12 @@ module mgmt_core (
     wire [31:0] stg_rw_dat_o;
     wire [31:0] stg_ro_dat_o;
 
-    wire [1:0] mgmt_ena;
-    wire [7:0] mgmt_wen_mask;
-    wire [1:0] mgmt_wen;
-    wire [7:0] mgmt_addr;
+    wire [0:0] mgmt_ena;
+    wire [3:0] mgmt_wen_mask;
+    wire [0:0] mgmt_wen;
+    wire [8:0] mgmt_addr;
     wire [31:0] mgmt_wdata;
-    wire [63:0] mgmt_rdata;
+    wire [31:0] mgmt_rdata;
     wire [7:0] mgmt_addr_ro;
     wire [31:0] mgmt_rdata_ro;
 

@@ -25,7 +25,7 @@ module storage (
     input [`RAM_BLOCKS-1:0] mgmt_ena, 
     input [`RAM_BLOCKS-1:0] mgmt_wen, // not shared 
     input [(`RAM_BLOCKS*4)-1:0] mgmt_wen_mask, // not shared 
-    input [7:0] mgmt_addr,
+    input [8:0] mgmt_addr,
     input [31:0] mgmt_wdata,
     output [(`RAM_BLOCKS*32)-1:0] mgmt_rdata,
 
@@ -41,7 +41,15 @@ module storage (
     output [31:0] sram_ro_data
 );
 
-    sky130_sram_1kbyte_1rw1r_32x256_8 SRAM_0 (
+    wire [31:0] ro_rdata;
+    wire ro_clk = ~sram_ro_csb ? sram_ro_clk : mgmt_clk; 
+    wire ro_csb = ~sram_ro_csb ? sram_ro_csb : mgmt_ena_ro;
+    wire [8:0] ro_addr = ~sram_ro_csb ? {1'b1, sram_ro_addr} : {1'b0, mgmt_addr_ro[7:0]};
+
+    assign sram_ro_data = ro_rdata;
+    assign mgmt_rdata_ro = ro_rdata;
+
+    sky130_sram_2kbyte_1rw1r_32x512_8 SRAM_0 (
         // MGMT R/W port
         .clk0(mgmt_clk), 
         .csb0(mgmt_ena[0]),   
@@ -51,27 +59,11 @@ module storage (
         .din0(mgmt_wdata),
         .dout0(mgmt_rdata[31:0]),
         // MGMT RO port
-        .clk1(mgmt_clk),
-        .csb1(mgmt_ena_ro), 
-        .addr1(mgmt_addr_ro),
-        .dout1(mgmt_rdata_ro)
+        .clk1(ro_clk),
+        .csb1(ro_csb), 
+        .addr1(ro_addr),
+        .dout1(ro_rdata)
     ); 
-
-    sky130_sram_1kbyte_1rw1r_32x256_8 SRAM_1 (
-        // MGMT R/W port
-        .clk0(mgmt_clk), 
-        .csb0(mgmt_ena[1]),   
-        .web0(mgmt_wen[1]),  
-        .wmask0(mgmt_wen_mask[7:4]),
-        .addr0(mgmt_addr),
-        .din0(mgmt_wdata),
-        .dout0(mgmt_rdata[63:32]),
-        // Housekeeping RO port
-        .clk1(sram_ro_clk),
-        .csb1(sram_ro_csb), 
-        .addr1(sram_ro_addr),
-        .dout1(sram_ro_data)
-    );  
 
 endmodule
 `default_nettype wire

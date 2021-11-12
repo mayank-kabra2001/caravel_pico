@@ -35,7 +35,7 @@ module storage_bridge_wb (
     output [`RAM_BLOCKS-1:0] mgmt_ena, 
     output [(`RAM_BLOCKS*4)-1:0] mgmt_wen_mask,
     output [`RAM_BLOCKS-1:0] mgmt_wen,
-    output [7:0] mgmt_addr,
+    output [8:0] mgmt_addr,
     output [31:0] mgmt_wdata,
     input  [(`RAM_BLOCKS*32)-1:0] mgmt_rdata,
 
@@ -92,7 +92,7 @@ module storage_bridge_wb (
     assign mgmt_ena = valid[0] ? ~rw_sel : {`RAM_BLOCKS{1'b1}}; 
     assign mgmt_wen = ~{`RAM_BLOCKS{wen[0]}};
     assign mgmt_wen_mask = {`RAM_BLOCKS{wen_mask[3:0]}};
-    assign mgmt_addr  = wb_adr_i[9:2];
+    assign mgmt_addr  = wb_adr_i[10:2];
     assign mgmt_wdata = wb_dat_i[31:0];
 
     integer i;
