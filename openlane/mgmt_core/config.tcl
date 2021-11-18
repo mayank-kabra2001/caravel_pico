@@ -28,11 +28,11 @@ set ::env(VERILOG_FILES) "\
 
 set ::env(CLOCK_PORT) "clk"
 set ::env(CLOCK_NET) "clk"
-set ::env(CLOCK_PERIOD) "25"
+set ::env(CLOCK_PERIOD) "30"
 
 ## Synthesis
 set ::env(SYNTH_STRATEGY) "DELAY 1"
-set ::env(SYNTH_MAX_FANOUT) 6
+set ::env(SYNTH_MAX_FANOUT) 8
 set ::env(SYNTH_READ_BLACKBOX_LIB) 1
 
 ## Floorplan
@@ -44,9 +44,16 @@ set ::env(MACRO_PLACEMENT_CFG) $script_dir/macro_placement.cfg
 set ::env(PL_TARGET_DENSITY) 0.214
 set ::env(CELL_PAD) 0
 
+set ::env(LEFT_MARGIN_MULT) 22
+set ::env(RIGHT_MARGIN_MULT) 22
+
 ## PDN
+set ::env(FP_PDN_CORE_RING) 1
 set ::env(FP_PDN_VPITCH) 50
 set ::env(FP_PDN_HPITCH) 130
+
+## CTS
+set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
 
 ## Placement
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
@@ -67,6 +74,9 @@ set ::env(GLB_RT_L6_ADJUSTMENT) 0.1
 set ::env(GLB_RT_ALLOW_CONGESTION) 0
 set ::env(GLB_RT_OVERFLOW_ITERS) 200
 
+set ::env(GLB_RT_MINLAYER) 2
+set ::env(GLB_RT_MAXLAYER) 6
+
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
 set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.25
 
@@ -81,7 +91,7 @@ set ::env(EXTRA_GDS_FILES) "\
 	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/gds/sky130_sram_2kbyte_1rw1r_32x512_8.gds"
 
 set ::env(EXTRA_LIBS) "\
-	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8.lib"
+	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib"
 
 ## Diode Insertion
 set ::env(DIODE_INSERTION_STRATEGY) 4

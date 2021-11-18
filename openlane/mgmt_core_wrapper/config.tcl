@@ -38,7 +38,10 @@ set ::env(CLOCK_TREE_SYNTH) 0
 ## Floorplan
 set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
 set ::env(FP_SIZING) absolute
-set ::env(DIE_AREA) "0 0 2700 820"
+set ::env(DIE_AREA) "0 0 2620 820"
+
+set ::env(FP_IO_VEXTEND) 2
+set ::env(FP_IO_HEXTEND) 2
 
 set ::env(FILL_INSERTION) 0
 set ::env(TAP_DECAP_INSERTION) 0
@@ -53,6 +56,9 @@ set ::env(FP_PDN_CHECK_NODES) 0
 set ::env(FP_PDN_IRDROP) 0
 
 set ::env(FP_PDN_ENABLE_RAILS) 0
+
+set ::env(FP_HORIZONTAL_HALO) -6
+set ::env(FP_VERTICAL_HALO) -6
 
 ## Placement
 set ::env(PL_TARGET_DENSITY) 0.18
@@ -70,11 +76,15 @@ set ::env(GLB_RT_L6_ADJUSTMENT) 0.1
 set ::env(GLB_RT_ALLOW_CONGESTION) 1
 set ::env(GLB_RT_OVERFLOW_ITERS) 200
 
-set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 0
+set ::env(GLB_RT_MINLAYER) 2
+set ::env(GLB_RT_MAXLAYER) 6
 
 set ::env(GLB_RT_OBS) "\
-   met5 20 20 570 760, \
-   met4 20 20 570 760"
+   li1 $::env(DIE_AREA),
+   met5 5 10 555 750, \
+   met4 5 10 555 750"
+
+set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 0
 
 ## DRC
 set ::env(MAGIC_DRC_USE_GDS) 0
