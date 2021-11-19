@@ -35,6 +35,8 @@ set ::env(SYNTH_STRATEGY) "DELAY 1"
 set ::env(SYNTH_MAX_FANOUT) 8
 set ::env(SYNTH_READ_BLACKBOX_LIB) 1
 
+set ::env(STA_REPORT_POWER) 0
+
 ## Floorplan
 set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
 set ::env(FP_SIZING) absolute
@@ -79,6 +81,8 @@ set ::env(GLB_RT_MAXLAYER) 6
 
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
 set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.25
+
+set ::env(GLB_RT_OBS) "li1 $::env(DIE_AREA)"
 
 ## Internal Macros
 set ::env(VERILOG_FILES_BLACKBOX) "\
