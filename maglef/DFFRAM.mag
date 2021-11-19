@@ -1,7 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1637160645
+timestamp 1637325823
 << obsli1 >>
 rect 1869 2159 107916 145809
 << obsm1 >>
@@ -204,15 +204,16 @@ rect 97688 2891 100037 145485
 << metal5 >>
 rect 4 147492 109936 147812
 rect 664 146832 109276 147152
-rect 4 143160 109936 143480
-rect 4 127842 109936 128162
-rect 4 112524 109936 112844
-rect 4 97206 109936 97526
-rect 4 81888 109936 82208
-rect 4 66570 109936 66890
-rect 4 51252 109936 51572
-rect 4 35934 109936 36254
-rect 4 20616 109936 20936
+rect 4 135298 109936 135618
+rect 4 122298 109936 122618
+rect 4 109298 109936 109618
+rect 4 96298 109936 96618
+rect 4 83298 109936 83618
+rect 4 70298 109936 70618
+rect 4 57298 109936 57618
+rect 4 44298 109936 44618
+rect 4 31298 109936 31618
+rect 4 18298 109936 18618
 rect 4 5298 109936 5618
 rect 664 816 109276 1136
 rect 4 156 109936 476
@@ -367,15 +368,15 @@ rlabel metal3 s 109200 142128 110000 142248 6 EN
 port 74 nsew signal input
 rlabel metal5 s 4 156 109936 476 6 VGND
 port 75 nsew ground input
-rlabel metal5 s 4 20616 109936 20936 6 VGND
+rlabel metal5 s 4 18298 109936 18618 6 VGND
 port 75 nsew ground input
-rlabel metal5 s 4 51252 109936 51572 6 VGND
+rlabel metal5 s 4 44298 109936 44618 6 VGND
 port 75 nsew ground input
-rlabel metal5 s 4 81888 109936 82208 6 VGND
+rlabel metal5 s 4 70298 109936 70618 6 VGND
 port 75 nsew ground input
-rlabel metal5 s 4 112524 109936 112844 6 VGND
+rlabel metal5 s 4 96298 109936 96618 6 VGND
 port 75 nsew ground input
-rlabel metal5 s 4 143160 109936 143480 6 VGND
+rlabel metal5 s 4 122298 109936 122618 6 VGND
 port 75 nsew ground input
 rlabel metal5 s 4 147492 109936 147812 6 VGND
 port 75 nsew ground input
@@ -393,13 +394,15 @@ rlabel metal5 s 664 816 109276 1136 6 VPWR
 port 76 nsew power input
 rlabel metal5 s 4 5298 109936 5618 6 VPWR
 port 76 nsew power input
-rlabel metal5 s 4 35934 109936 36254 6 VPWR
+rlabel metal5 s 4 31298 109936 31618 6 VPWR
 port 76 nsew power input
-rlabel metal5 s 4 66570 109936 66890 6 VPWR
+rlabel metal5 s 4 57298 109936 57618 6 VPWR
 port 76 nsew power input
-rlabel metal5 s 4 97206 109936 97526 6 VPWR
+rlabel metal5 s 4 83298 109936 83618 6 VPWR
 port 76 nsew power input
-rlabel metal5 s 4 127842 109936 128162 6 VPWR
+rlabel metal5 s 4 109298 109936 109618 6 VPWR
+port 76 nsew power input
+rlabel metal5 s 4 135298 109936 135618 6 VPWR
 port 76 nsew power input
 rlabel metal5 s 664 146832 109276 147152 6 VPWR
 port 76 nsew power input
@@ -428,7 +431,7 @@ string LEFclass BLOCK
 string FIXED_BBOX 0 0 110000 148000
 string LEFview TRUE
 string GDS_FILE /project/openlane/DFFRAM/runs/DFFRAM/results/magic/DFFRAM.gds
-string GDS_END 59530504
+string GDS_END 59531056
 string GDS_START 181858
 << end >>
 

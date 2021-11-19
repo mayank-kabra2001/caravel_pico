@@ -58,7 +58,12 @@ set ::env(FP_PDN_IRDROP) 0
 set ::env(FP_PDN_ENABLE_RAILS) 0
 
 set ::env(FP_HORIZONTAL_HALO) -6
-set ::env(FP_VERTICAL_HALO) -6
+set ::env(FP_VERTICAL_HALO) 25
+
+set ::env(FP_PDN_HOFFSET) 60 
+set ::env(FP_PDN_HWIDTH) 3.2
+
+set ::env(TOP_MARGIN_MULT) "10"
 
 ## Placement
 set ::env(PL_TARGET_DENSITY) 0.18
@@ -88,9 +93,10 @@ set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 0
 
 ## DRC
 set ::env(MAGIC_DRC_USE_GDS) 0
+set ::env(QUIT_ON_MAGIC_DRC) 0
 
 ## LVS
-set ::env(QUIT_ON_LVS_ERROR) "0"
+set ::env(QUIT_ON_LVS_ERROR) 0
 
 ## Diode Insertion
 set ::env(DIODE_INSERTION_STRATEGY) 0

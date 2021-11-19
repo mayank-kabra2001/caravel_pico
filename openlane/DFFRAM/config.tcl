@@ -49,6 +49,8 @@ set ::env(CELL_PAD) 0
 
 ## PDN 
 set ::env(FP_PDN_CORE_RING) 1
+set ::env(FP_PDN_HPITCH) "130"
+set ::env(FP_PDN_HOFFSET) "16.65"
 
 ## Placement
 set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 1
