@@ -105,6 +105,14 @@ set ::env(EXTRA_LIBS) "\
 ## Diode Insertion
 set ::env(DIODE_INSERTION_STRATEGY) 4
 
-## DRC
+## SET BELOW TO 0 TO AVOID OR SEGFAULT
+set ::env(STA_REPORT_POWER) 0
+
+
+## DO NOT QUIT
 set ::env(MAGIC_DRC_USE_GDS) 0
 set ::env(QUIT_ON_MAGIC_DRC) 0
+set ::env(QUIT_ON_TIMING_VIOLATIONS) 0
+set ::env(QUIT_ON_HOLD_VIOLATIONS) 0
+set ::env(QUIT_ON_SETUP_VIOLATIONS) 0
+set ::env(QUIT_ON_TR_DRC) 0
