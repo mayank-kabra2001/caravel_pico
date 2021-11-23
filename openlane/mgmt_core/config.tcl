@@ -20,11 +20,7 @@ set ::env(ROUTING_CORES) "6"
 set ::env(DESIGN_NAME) mgmt_core
 set ::env(DESIGN_IS_CORE) 1
 
-set ::env(RUN_KLAYOUT) 0
-
-set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
-	$script_dir/../../verilog/rtl/mgmt_core.v"
+set ::env(RUN_KLAYOUT) 1
 
 set ::env(CLOCK_PORT) "clk"
 set ::env(CLOCK_NET) "clk"
@@ -88,6 +84,21 @@ set ::env(GLB_RT_OBS) "\
 	li1 0 728.20000 2000.06000 740,\
 	li1 1988.99000 0 2000 740,\
 	li1 89.61500 100.78500 793.48000 538.37000"
+	
+## Diode Insertion
+set ::env(DIODE_INSERTION_STRATEGY) 4
+
+########## SET BELOW TO 0 TO AVOID OR SEGFAULT
+set ::env(STA_REPORT_POWER) 0
+
+########## DO NOT QUIT ON THE FOLLOWING
+set ::env(MAGIC_DRC_USE_GDS) 0
+set ::env(QUIT_ON_MAGIC_DRC) 0
+set ::env(QUIT_ON_TIMING_VIOLATIONS) 0
+set ::env(QUIT_ON_HOLD_VIOLATIONS) 0
+set ::env(QUIT_ON_SETUP_VIOLATIONS) 0
+set ::env(QUIT_ON_TR_DRC) 0
+
 
 ## Internal Macros
 set ::env(VERILOG_FILES_BLACKBOX) "\
@@ -102,17 +113,8 @@ set ::env(EXTRA_GDS_FILES) "\
 set ::env(EXTRA_LIBS) "\
 	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib"
 
-## Diode Insertion
-set ::env(DIODE_INSERTION_STRATEGY) 4
-
-## SET BELOW TO 0 TO AVOID OR SEGFAULT
-set ::env(STA_REPORT_POWER) 0
+set ::env(VERILOG_FILES) "\
+	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/rtl/mgmt_core.v"
 
 
-## DO NOT QUIT
-set ::env(MAGIC_DRC_USE_GDS) 0
-set ::env(QUIT_ON_MAGIC_DRC) 0
-set ::env(QUIT_ON_TIMING_VIOLATIONS) 0
-set ::env(QUIT_ON_HOLD_VIOLATIONS) 0
-set ::env(QUIT_ON_SETUP_VIOLATIONS) 0
-set ::env(QUIT_ON_TR_DRC) 0
