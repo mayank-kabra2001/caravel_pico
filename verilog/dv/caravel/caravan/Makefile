@@ -15,16 +15,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 PDK_PATH = $(PDK_ROOT)/sky130A
-VERILOG_PATH = ../../../..
+VERILOG_PATH = ../../..
 RTL_PATH = $(VERILOG_PATH)/rtl
-BEHAVIOURAL_MODELS = ../../ 
+VIP_PATH = $(VERILOG_PATH)/dv/vip
+COMMON = $(VERILOG_PATH)/common
 
-# Temporary:  Path to management SoC wrapper repository
-MGMT_WRAPPER_PATH = ~/gits/caravel_pico/verilog/rtl
-
-FIRMWARE_PATH = ../..
-GCC_PATH?=/ef/apps/bin
-GCC_PREFIX?=riscv32-unknown-elf
+FIRMWARE_PATH = $(VERILOG_PATH)/dv/firmware
+GCC_PATH?=$(TOOLS)/bin
+GCC_PREFIX?=riscv32-unknown-linux-gnu
 
 SIM_DEFINES = -DFUNCTIONAL -DSIM
 
@@ -40,20 +38,33 @@ hex:  ${PATTERN:=.hex}
 
 %.vvp: %_tb.v %.hex
 ifeq ($(SIM),RTL)
-	iverilog -Ttyp $(SIM_DEFINES) -I $(BEHAVIOURAL_MODELS) \
-	-I $(PDK_PATH) -I $(RTL_PATH) -I $(MGMT_WRAPPER_PATH) \
+	iverilog -Ttyp $(SIM_DEFINES) -I $(VIP_PATH) \
+	-I $(PDK_PATH) -I $(RTL_PATH) -I $(COMMON) \
 	$< -o $@ 
 else  
-	iverilog -Ttyp $(SIM_DEFINES) -DGL -I $(BEHAVIOURAL_MODELS) \
-	-I $(PDK_PATH) -I $(VERILOG_PATH) -I $(RTL_PATH) \
+	iverilog -Ttyp $(SIM_DEFINES) -DGL -I $(VIP_PATH) \
+	-I $(PDK_PATH) -I $(VERILOG_PATH) -I $(RTL_PATH) -I $(COMMON) \
 	$< -o $@ 
 endif
+ifeq ($(SIM),GL_SDF)
+	$(eval VIP_PATH_PATH := $(shell realpath --relative-to=$(shell pwd) $(VIP_PATH)))
+	$(eval PDK_ABSOLUTE_PATH := $(shell realpath --relative-to=$(shell pwd) $(PDK_PATH)))
+	$(eval RTL_ABSOLUTE_PATH := $(shell realpath --relative-to=$(shell pwd) $(RTL_PATH)))
+	$(eval VERILOG_ABSOLUTE_PATH := $(shell realpath --relative-to=$(shell pwd) $(VERILOG_PATH)))
+	$(eval CURRENT_DIRECTORY := $(shell pwd))
+	cvc +interp \
+	+incdir+$(VIP_PATH_PATH)+$(RTL_ABSOLUTE_PATH)+$(VERILOG_ABSOLUTE_PATH)+$(PDK_ABSOLUTE_PATH)+$(CURRENT_DIRECTORY) \
+	+define+FUNCTIONAL +define+SIM +define+GL +define+USE_POWER_PINS +define+ENABLE_SDF +change_port_type +dump2fst $<
+endif
+
 
 %.vcd: %.vvp
 	vvp $<
 
 %.elf: %.c $(FIRMWARE_PATH)/sections.lds $(FIRMWARE_PATH)/start.s check-env
-	${GCC_PATH}/${GCC_PREFIX}-gcc -march=rv32imc -mabi=ilp32 -Wl,-Bstatic,-T,$(FIRMWARE_PATH)/sections.lds,--strip-debug -ffreestanding -nostdlib -o $@ $(FIRMWARE_PATH)/start.s $<
+	${GCC_PATH}/${GCC_PREFIX}-gcc -march=rv32imc -mabi=ilp32 \
+	 -I$(FIRMWARE_PATH) -Wl,-Bstatic,-T,$(FIRMWARE_PATH)/sections.lds,--strip-debug \
+	 -ffreestanding -nostdlib -o $@ $(FIRMWARE_PATH)/start.s $<
 
 %.hex: %.elf
 	${GCC_PATH}/${GCC_PREFIX}-objcopy -O verilog $< $@ 

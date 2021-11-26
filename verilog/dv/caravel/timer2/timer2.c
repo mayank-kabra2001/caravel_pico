@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "../../defs.h"
+#include "defs.h"
 
 // --------------------------------------------------------
 
