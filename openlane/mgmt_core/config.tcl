@@ -15,16 +15,16 @@
 
 set script_dir [file dirname [file normalize [info script]]]
 
-set ::env(ROUTING_CORES) "6"
+set ::env(ROUTING_CORES) "16"
 
 set ::env(DESIGN_NAME) mgmt_core
 set ::env(DESIGN_IS_CORE) 1
 
-set ::env(RUN_KLAYOUT) 1
+set ::env(RUN_KLAYOUT) 0
 
 set ::env(CLOCK_PORT) "clk"
 set ::env(CLOCK_NET) "clk"
-set ::env(CLOCK_PERIOD) "30"
+set ::env(CLOCK_PERIOD) "10"
 
 ## Synthesis
 set ::env(SYNTH_STRATEGY) "DELAY 1"
@@ -51,16 +51,15 @@ set ::env(FP_PDN_VPITCH) 50
 set ::env(FP_PDN_HPITCH) 130
 
 ## CTS
-set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
+set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
 
 ## Placement
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
 set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 1
 
-set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 5
-set ::env(PL_RESIZER_MAX_CAP_MARGIN) 5
+set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 2
+set ::env(PL_RESIZER_MAX_CAP_MARGIN) 2
 
-set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.25
 
 ## Routing
 set ::env(GLB_RT_ADJUSTMENT) 0
@@ -75,8 +74,9 @@ set ::env(GLB_RT_OVERFLOW_ITERS) 200
 set ::env(GLB_RT_MINLAYER) 2
 set ::env(GLB_RT_MAXLAYER) 6
 
+set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.15
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
-set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.25
+set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.3
 
 set ::env(GLB_RT_OBS) "\
 	li1 0 0 10.16500 740.00,\

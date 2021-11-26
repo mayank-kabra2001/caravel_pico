@@ -14,21 +14,36 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ---- Test patterns for project striVe ----
+PDK_PATH?=$(PDK_ROOT)/sky130A 
+VERILOG_PATH = ../../../
+RTL_PATH = $(VERILOG_PATH)/rtl
+
+SIM ?= RTL
 
 .SUFFIXES:
-.SILENT: clean all
 
-PATTERNS = mgmt_protect chip_io mprj_ctrl sysctrl_wb
+PATTERN = mgmt_protect
 
-all:  ${PATTERNS}
-	for i in ${PATTERNS}; do \
-		( cd $$i && make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
-	done
+all:  ${PATTERN:=.vcd}
 
-clean:  ${PATTERNS}
-	for i in ${PATTERNS}; do \
-		( cd $$i && make clean ) ; \
-	done
+%.vvp: %_tb.v
+ifeq ($(SIM),RTL)
+	iverilog -Ttyp -DFUNCTIONAL -I $(PDK_PATH) -I $(VERILOG_PATH) -I .. -I $(RTL_PATH) \
+	$< -o $@
+else
+	iverilog -Ttyp -DFUNCTIONAL -DGL -I $(PDK_PATH) -I $(VERILOG_PATH) -I .. -I $(RTL_PATH) \
+	$< -o $@
+endif
+
+%.vcd: %.vvp check-env
+	vvp $<
+
+check-env:
+ifndef PDK_ROOT
+	$(error PDK_ROOT is undefined, please export it before running make)
+endif
+
+clean:
+	rm -f *.vvp *.vcd
 
 .PHONY: clean all

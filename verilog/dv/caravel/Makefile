@@ -19,11 +19,12 @@
 .SUFFIXES:
 .SILENT: clean all
 
-PATTERNS = mgmt_protect chip_io mprj_ctrl sysctrl_wb
+PATTERNS = gpio_mgmt gpio mem uart perf hkspi sysctrl mprj_ctrl mprj_bitbang pass_thru timer timer2 pll storage qspi caravan irq user_pass_thru spi_master sram_exec hkspi_power
 
 all:  ${PATTERNS}
 	for i in ${PATTERNS}; do \
-		( cd $$i && make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
+		( cd $$i && SIM=RTL make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
+		( cd $$i && SIM=GL make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
 	done
 
 clean:  ${PATTERNS}

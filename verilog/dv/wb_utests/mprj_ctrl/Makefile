@@ -14,21 +14,20 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ---- Test patterns for project striVe ----
-
 .SUFFIXES:
-.SILENT: clean all
 
-PATTERNS = mgmt_protect chip_io mprj_ctrl sysctrl_wb
+PATTERN = mprj_ctrl
 
-all:  ${PATTERNS}
-	for i in ${PATTERNS}; do \
-		( cd $$i && make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
-	done
+all:  ${PATTERN:=.vcd}
 
-clean:  ${PATTERNS}
-	for i in ${PATTERNS}; do \
-		( cd $$i && make clean ) ; \
-	done
+%.vvp: %_tb.v
+	iverilog  -I ../../../rtl \
+	$< -o $@
+
+%.vcd: %.vvp
+	vvp $<
+
+clean:
+	rm -f *.vvp *.vcd *.log
 
 .PHONY: clean all
