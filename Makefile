@@ -42,6 +42,25 @@ LARGE_FILES_GZ_SPLIT := $(addsuffix .$(ARCHIVE_EXT).00.split, $(LARGE_FILES))
 # consider splitting existing archives
 LARGE_FILES_GZ_SPLIT += $(addsuffix .00.split, $(ARCHIVES))
 
+MCW_ROOT?=$(PWD)/mgmt_core_wrapper
+MCW ?=LITEX_VEXRISCV
+
+# Install lite version of caravel, (1): caravel-lite, (0): caravel
+MCW_LITE?=1
+
+ifeq ($(MCW),LITEX_VEXRISCV)
+	MCW_NAME := mcw-litex-vexriscv
+	MCW_REPO := https://github.com/efabless/caravel_mgmt_soc_litex
+	MCW_BRANCH := main
+else
+	MCW_NAME := mcw-pico
+	MCW_REPO := https://github.com/efabless/caravel_pico
+	MCW_BRANCH := main
+endif
+
+# Install caravel as submodule, (1): submodule, (0): clone
+SUBMODULE?=0
+
 # Caravel Root (Default: pwd)
 # Need to be overwritten if running the makefile from UPRJ_ROOT,
 # If caravel is sub-moduled in the user project, run export CARAVEL_ROOT=$(pwd)/caravel
@@ -49,6 +68,9 @@ CARAVEL_ROOT ?= $(shell pwd)
 
 # User project root
 UPRJ_ROOT ?= $(shell pwd)
+
+# MANAGEMENT AREA ROOT
+MGMT_AREA_ROOT ?= $(shell pwd)/mgmt_core_wrapper 
 
 # Build tasks such as make ship, make generate_fill, make set_user_id, make final run in the foreground (1) or background (0)
 FOREGROUND ?= 1
@@ -313,7 +335,9 @@ LVS_GDS_BLOCKS = $(foreach block, $(BLOCKS), lvs-gds-$(block))
 $(LVS_GDS_BLOCKS): lvs-gds-% : ./gds/%.gds ./verilog/gl/%.v
 	echo "Extracting $*"
 	mkdir -p ./gds/tmp
-	echo "gds read ./$*.gds;\
+	echo "	gds flatglob \"*_example_*\";\
+		gds flatten true;\
+		gds read ./$*.gds;\
 		load $* -dereference;\
 		select top cell;\
 		extract no all;\
@@ -408,19 +432,34 @@ $(MAG_BLOCKS): mag2gds-% : ./mag/%.mag uncompress
 	echo "Converting mag file $* to GDS..."
 	echo "addpath $(CARAVEL_ROOT)/mag/hexdigits;\
 		addpath ${PDKPATH}/libs.ref/sky130_ml_xx_hd/mag;\
-		addpath ${CARAVEL_ROOT}/subcells/simple_por/mag;\
+		addpath $(CARAVEL_ROOT)/mag/primitives;\
 		drc off;\
 		gds rescale false;\
 		load $* -dereference;\
 		select top cell;\
 		expand;\
-		cif *hier write disable;\
 		gds write $*.gds;\
 		exit;" > ./mag/mag2gds_$*.tcl
 	cd ./mag && magic -rcfile ${PDK_ROOT}/sky130A/libs.tech/magic/sky130A.magicrc -noc -dnull mag2gds_$*.tcl < /dev/null
 	rm ./mag/mag2gds_$*.tcl
 	mv -f ./mag/$*.gds ./gds/
-	
+
+# MAG2LEF 
+BLOCKS = $(shell cd openlane && find * -maxdepth 0 -type d)
+MAG_BLOCKS = $(foreach block, $(BLOCKS), mag2lef-$(block))
+$(MAG_BLOCKS): mag2lef-% : ./mag/%.mag uncompress
+	echo "Converting mag file $* to LEF..."
+	echo "addpath $(CARAVEL_ROOT)/mag/hexdigits;\
+		addpath ${PDKPATH}/libs.ref/sky130_ml_xx_hd/mag;\
+		addpath $(CARAVEL_ROOT)/mag/primitives;\
+		drc off;\
+		load $*;\
+		lef write $*.lef;\
+		exit;" > ./mag/mag2lef_$*.tcl
+	cd ./mag && magic -rcfile ${PDK_ROOT}/sky130A/libs.tech/magic/sky130A.magicrc -noc -dnull mag2lef_$*.tcl < /dev/null
+	rm ./mag/mag2lef_$*.tcl
+	mv -f ./mag/$*.lef ./lef/
+
 .PHONY: help
 help:
 	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
@@ -428,7 +467,7 @@ help:
 # RCX Extraction
 BLOCKS = $(shell cd openlane && find * -maxdepth 0 -type d)
 RCX_BLOCKS = $(foreach block, $(BLOCKS), rcx-$(block))
-OPENLANE_IMAGE_NAME=efabless/openlane:2021.09.16_03.28.21
+OPENLANE_IMAGE_NAME=efabless/openlane:2021.11.23_01.42.34
 $(RCX_BLOCKS): rcx-% : ./def/%.def 
 	echo "Running RC Extraction on $*"
 	mkdir -p ./def/tmp 
@@ -436,9 +475,14 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 	python3 $(OPENLANE_ROOT)/scripts/mergeLef.py -i $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/techlef/$(STD_CELL_LIBRARY).tlef $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lef/*.lef -o ./def/tmp/merged.lef
 	echo "\
 		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__tt_025C_1v80.lib;\
-		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(SPECIAL_VOLTAGE_LIBRARY)/lib/$(SPECIAL_VOLTAGE_LIBRARY)__tt_025C_3v30.lib;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib;\
 		set std_cell_lef ./def/tmp/merged.lef;\
+		set sram_lef $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lef/sky130_sram_2kbyte_1rw1r_32x512_8.lef;\
 		if {[catch {read_lef \$$std_cell_lef} errmsg]} {\
+    			puts stderr \$$errmsg;\
+    			exit 1;\
+		};\
+		if {[catch {read_lef \$$sram_lef} errmsg]} {\
     			puts stderr \$$errmsg;\
     			exit 1;\
 		};\
@@ -452,7 +496,7 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 			puts stderr \$$errmsg;\
 			exit 1;\
 		};\
-		read_sdc ./openlane/$*/base.sdc;\
+		read_sdc -echo ./spef/$*.sdc;\
 		set_propagated_clock [all_clocks];\
 		set rc_values \"mcon 9.249146E-3,via 4.5E-3,via2 3.368786E-3,via3 0.376635E-3,via4 0.00580E-3\";\
 		set vias_rc [split \$$rc_values ","];\
@@ -465,10 +509,45 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 		set_wire_rc -clock -layer met5;\
 		define_process_corner -ext_model_index 0 X;\
 		extract_parasitics -ext_model_file ${PDK_ROOT}/sky130A/libs.tech/openlane/rcx_rules.info -corner_cnt 1 -max_res 50 -coupling_threshold 0.1 -cc_model 10 -context_depth 5;\
-		write_spef ./def/tmp/$*.spef" > ./def/tmp/or_rcx_$*.tcl
+		write_spef ./spef/$*.spef" > ./def/tmp/rcx_$*.tcl
 ## Generate Spef file
-	docker run -it -v $(OPENLANE_ROOT):/openLANE_flow -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
-	sh -c " cd /caravel; openroad -exit ./def/tmp/or_rcx_$*.tcl |& tee ./def/tmp/or_rcx_$*.log" 
+	docker run -it -v $(OPENLANE_ROOT):/openlane -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
+	sh -c " cd /caravel; openroad -exit ./def/tmp/rcx_$*.tcl |& tee ./def/tmp/rcx_$*.log" 
+## Run OpenSTA
+	echo "\
+		set std_cell_lef ./def/tmp/merged.lef;\
+		set sram_lef $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lef/sky130_sram_2kbyte_1rw1r_32x512_8.lef;\
+		if {[catch {read_lef \$$std_cell_lef} errmsg]} {\
+    			puts stderr \$$errmsg;\
+    			exit 1;\
+		};\
+		if {[catch {read_lef \$$sram_lef} errmsg]} {\
+    			puts stderr \$$errmsg;\
+    			exit 1;\
+		};\
+		foreach lef_file [glob ./lef/*.lef] {\
+			if {[catch {read_lef \$$lef_file} errmsg]} {\
+    			puts stderr \$$errmsg;\
+    			exit 1;\
+			}\
+		};\
+		set_cmd_units -time ns -capacitance pF -current mA -voltage V -resistance kOhm -distance um;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__tt_025C_1v80.lib;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib;\
+		read_def ./def/$*.def;\
+		read_spef ./spef/$*.spef;\
+		read_sdc -echo ./spef/$*.sdc;\
+		write_sdf ./sdf/$*.sdf;\
+		report_checks -fields {capacitance slew input_pins nets fanout} -path_delay min_max -group_count 5;\
+		report_check_types -max_slew -max_capacitance -max_fanout -violators;\
+		report_checks -to [all_outputs] -group_count 1000;\
+		" > ./def/tmp/sta_$*.tcl 
+	docker run -it -v $(OPENLANE_ROOT):/openlane -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
+	sh -c "cd /caravel; openroad -exit ./def/tmp/sta_$*.tcl |& tee ./def/tmp/sta_$*.log" 
+
+
+mgmt_core_wrapper_clk_delay: ./def/mgmt_core_wrapper.def 
+	$(MAKE) rcx-mgmt_core_wrapper
 ## Run OpenSTA
 	echo "\
 		set std_cell_lef ./def/tmp/merged.lef;\
@@ -484,16 +563,14 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 		};\
 		set_cmd_units -time ns -capacitance pF -current mA -voltage V -resistance kOhm -distance um;\
 		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__tt_025C_1v80.lib;\
-		read_verilog ./verilog/gl/$*.v;\
-		link_design $*;\
-		read_spef ./def/tmp/$*.spef;\
-		read_sdc -echo ./openlane/$*/base.sdc;\
-		write_sdf $*.sdf;\
-		report_checks -fields {capacitance slew input_pins nets fanout} -path_delay min_max -group_count 1000;\
-		report_check_types -max_slew -max_capacitance -max_fanout -violators;\
-		" > ./def/tmp/or_sta_$*.tcl 
-	docker run -it -v $(OPENLANE_ROOT):/openLANE_flow -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
-	sh -c "cd /caravel; openroad -exit ./def/tmp/or_sta_$*.tcl |& tee ./def/tmp/or_sta_$*.log" 
+		read_def ./def/mgmt_core_wrapper.def;\
+		read_spef ./spef/mgmt_core_wrapper.spef;\
+		read_sdc -echo ./openlane/mgmt_core_wrapper/base.sdc;\
+		report_checks -from [get_ports core_clk] -to [get_pins core/clk] -unconstrained -fields {slew cap input nets fanout} -format full_clock_expanded;\
+		report_checks -from [get_ports core_clk] -to [get_pins DFFRAM/CLK] -unconstrained -fields {slew cap input nets fanout} -format full_clock_expanded;\
+		" > ./def/tmp/clk_delay_mgmt_core_wrapper.tcl 
+	docker run -it -v $(OPENLANE_ROOT):/openlane -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
+	sh -c "cd /caravel; openroad -exit ./def/tmp/clk_delay_mgmt_core_wrapper.tcl |& tee ./def/tmp/clk_delay_mgmt_core_wrapper.log" 
 
 ###########################################################################
 .PHONY: generate_fill
@@ -608,7 +685,7 @@ build-pdk: check-env $(PDK_ROOT)/open_pdks $(PDK_ROOT)/skywater-pdk
 		rm -rf $(PDK_ROOT)/sky130A) || \
 		true
 	cd $(PDK_ROOT)/open_pdks && \
-		./configure --enable-sky130-pdk=$(PDK_ROOT)/skywater-pdk/libraries --with-sky130-local-path=$(PDK_ROOT) --enable-sram-sky130 && \
+		./configure --enable-sky130-pdk=$(PDK_ROOT)/skywater-pdk/libraries --with-sky130-local-path=$(PDK_ROOT) --enable-sram-sky130=$(INSTALL_SRAM) && \
 		cd sky130 && \
 		$(MAKE) veryclean && \
 		$(MAKE) && \
