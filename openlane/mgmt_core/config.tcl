@@ -15,16 +15,22 @@
 
 set script_dir [file dirname [file normalize [info script]]]
 
-set ::env(ROUTING_CORES) "16"
+set ::env(ROUTING_CORES) "6"
 
 set ::env(DESIGN_NAME) mgmt_core
 set ::env(DESIGN_IS_CORE) 1
 
 set ::env(RUN_KLAYOUT) 0
 
+set ::env(VERILOG_FILES) "\
+	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/rtl/mgmt_core.v"
+
 set ::env(CLOCK_PORT) "clk"
 set ::env(CLOCK_NET) "clk"
-set ::env(CLOCK_PERIOD) "10"
+set ::env(CLOCK_PERIOD) "30"
+
+set ::env(RESET_PORT) "resetn"
 
 ## Synthesis
 set ::env(SYNTH_STRATEGY) "DELAY 1"
@@ -32,6 +38,8 @@ set ::env(SYNTH_MAX_FANOUT) 8
 set ::env(SYNTH_READ_BLACKBOX_LIB) 1
 
 set ::env(STA_REPORT_POWER) 0
+
+set ::env(BASE_SDC_FILE) $script_dir/base.sdc 
 
 ## Floorplan
 set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
@@ -51,15 +59,16 @@ set ::env(FP_PDN_VPITCH) 50
 set ::env(FP_PDN_HPITCH) 130
 
 ## CTS
-set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
+set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
 
 ## Placement
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
 set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 1
 
-set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 2
-set ::env(PL_RESIZER_MAX_CAP_MARGIN) 2
+set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 5
+set ::env(PL_RESIZER_MAX_CAP_MARGIN) 5
 
+set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.15
 
 ## Routing
 set ::env(GLB_RT_ADJUSTMENT) 0
@@ -74,9 +83,8 @@ set ::env(GLB_RT_OVERFLOW_ITERS) 200
 set ::env(GLB_RT_MINLAYER) 2
 set ::env(GLB_RT_MAXLAYER) 6
 
-set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.15
 set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
-set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.3
+set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.25
 
 set ::env(GLB_RT_OBS) "\
 	li1 0 0 10.16500 740.00,\
@@ -84,21 +92,6 @@ set ::env(GLB_RT_OBS) "\
 	li1 0 728.20000 2000.06000 740,\
 	li1 1988.99000 0 2000 740,\
 	li1 89.61500 100.78500 793.48000 538.37000"
-	
-## Diode Insertion
-set ::env(DIODE_INSERTION_STRATEGY) 4
-
-########## SET BELOW TO 0 TO AVOID OR SEGFAULT
-set ::env(STA_REPORT_POWER) 0
-
-########## DO NOT QUIT ON THE FOLLOWING
-set ::env(MAGIC_DRC_USE_GDS) 0
-set ::env(QUIT_ON_MAGIC_DRC) 0
-set ::env(QUIT_ON_TIMING_VIOLATIONS) 0
-set ::env(QUIT_ON_HOLD_VIOLATIONS) 0
-set ::env(QUIT_ON_SETUP_VIOLATIONS) 0
-set ::env(QUIT_ON_TR_DRC) 0
-
 
 ## Internal Macros
 set ::env(VERILOG_FILES_BLACKBOX) "\
@@ -113,8 +106,9 @@ set ::env(EXTRA_GDS_FILES) "\
 set ::env(EXTRA_LIBS) "\
 	$::env(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib"
 
-set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
-	$script_dir/../../verilog/rtl/mgmt_core.v"
+## Diode Insertion
+set ::env(DIODE_INSERTION_STRATEGY) 4
 
-
+## DRC
+set ::env(MAGIC_DRC_USE_GDS) 0
+set ::env(QUIT_ON_MAGIC_DRC) 0

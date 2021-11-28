@@ -25,7 +25,7 @@ set ::env(VERILOG_FILES) "\
 	$script_dir/../../verilog/rtl/defines.v\
 	$script_dir/../../verilog/rtl/mgmt_core_wrapper.v"
 
-set ::env(CLOCK_PORT) "clk"
+set ::env(CLOCK_PORT) "core_clk"
 set ::env(CLOCK_NET) ""
 set ::env(CLOCK_PERIOD) "25"
 
