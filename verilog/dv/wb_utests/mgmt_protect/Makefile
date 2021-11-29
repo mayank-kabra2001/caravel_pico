@@ -14,9 +14,11 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-PDK_PATH?=$(PDK_ROOT)/sky130A 
-VERILOG_PATH = ../../../
+PDK_PATH = $(PDK_ROOT)/sky130A
+VERILOG_PATH = ../../..
 RTL_PATH = $(VERILOG_PATH)/rtl
+VIP_PATH = $(VERILOG_PATH)/dv/vip
+COMMON = $(VERILOG_PATH)/common
 
 SIM ?= RTL
 
@@ -28,10 +30,10 @@ all:  ${PATTERN:=.vcd}
 
 %.vvp: %_tb.v
 ifeq ($(SIM),RTL)
-	iverilog -Ttyp -DFUNCTIONAL -I $(PDK_PATH) -I $(VERILOG_PATH) -I .. -I $(RTL_PATH) \
+	iverilog -Ttyp -DFUNCTIONAL -I $(PDK_PATH) -I $(RTL_PATH) -I $(COMMON) \
 	$< -o $@
 else
-	iverilog -Ttyp -DFUNCTIONAL -DGL -I $(PDK_PATH) -I $(VERILOG_PATH) -I .. -I $(RTL_PATH) \
+	iverilog -Ttyp -DFUNCTIONAL -DGL -I $(PDK_PATH) -I $(RTL_PATH) -I $(COMMON) \
 	$< -o $@
 endif
 

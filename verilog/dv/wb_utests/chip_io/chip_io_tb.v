@@ -21,9 +21,7 @@
 `define USE_POWER_PINS
 `define SIM_TIME 100_000
 
-`include "libs.ref/sky130_fd_io/verilog/sky130_fd_io.v"
-`include "libs.ref/sky130_fd_io/verilog/sky130_ef_io.v"
-`include "libs.ref/sky130_fd_io/verilog/sky130_ef_io__gpiov2_pad_wrapped.v"
+`include "caravel_netlists.v"
 
 `include "defines.v"
 
