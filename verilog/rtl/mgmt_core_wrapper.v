@@ -91,6 +91,7 @@ module mgmt_core_wrapper (
     input  [31:0] mprj_dat_i,
 
     output 	  hk_stb_o,
+    output 	  hk_cyc_o,
     input  [31:0] hk_dat_i,
     input  	  hk_ack_i,
 
@@ -194,6 +195,7 @@ module mgmt_core_wrapper (
         .mprj_dat_o(mprj_dat_o),
 
         .hk_stb_o(hk_stb_o),
+        .hk_cyc_o(hk_cyc_o),
         .hk_dat_i(hk_dat_i),
         .hk_ack_i(hk_ack_i),
 
