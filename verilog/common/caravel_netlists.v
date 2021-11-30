@@ -50,7 +50,6 @@
 	`include "gl/mgmt_core.v"
 	`include "gl/digital_pll.v"
 	`include "gl/DFFRAM.v"
-//	`include "gl/storage.v"
 	`include "gl/user_id_programming.v"
 	`include "gl/chip_io.v"
 	`include "gl/mprj_logic_high.v"
@@ -64,6 +63,8 @@
 	`include "gl/spare_logic_block.v"
 	`include "gl/mgmt_core_wrapper.v"
 	`include "gl/caravel.v"
+	`include "gl/housekeeping.v"
+	`include "gl/caravel_clocking.v"	
     `else
 	`include "digital_pll.v"
 	`include "caravel_clocking.v"

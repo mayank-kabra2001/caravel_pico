@@ -29,7 +29,7 @@
 `include "defines.v"
 
 `ifdef GL
-	`include "rtl/__user_project_wrapper.v"
+	`include "__user_project_wrapper.v"
 `else
     `include "__user_project_wrapper.v"
 `endif

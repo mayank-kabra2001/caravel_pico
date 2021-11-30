@@ -14,16 +14,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# ---- Test patterns for project striVe ----
 
-BLOCKS = $(shell find * -maxdepth 1 -type d)
+.SUFFIXES:
+.SILENT: clean all
 
-all:  ${BLOCKS}
-	for i in ${BLOCKS}; do \
-		( cd $$i && SIM=RTL make  ) ; \
+PATTERNS = gpio_mgmt gpio mem uart perf hkspi sysctrl mprj_ctrl pass_thru timer timer2 pll storage qspi caravan irq user_pass_thru
+
+all:  ${PATTERNS}
+	for i in ${PATTERNS}; do \
+		( cd $$i && SIM=RTL make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
+		( cd $$i && SIM=GL make -f Makefile $${i}.vcd &> verify.log && grep Monitor verify.log) ; \
 	done
 
-clean:  ${BLOCKS}
-	for i in ${BLOCKS}; do \
+clean:  ${PATTERNS}
+	for i in ${PATTERNS}; do \
 		( cd $$i && make clean ) ; \
 	done
 
