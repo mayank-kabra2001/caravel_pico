@@ -23,7 +23,7 @@ set ::env(DESIGN_IS_CORE) 1
 set ::env(RUN_KLAYOUT) 0
 
 set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/common/defines.v\
 	$script_dir/../../verilog/rtl/mgmt_core.v"
 
 set ::env(CLOCK_PORT) "clk"
