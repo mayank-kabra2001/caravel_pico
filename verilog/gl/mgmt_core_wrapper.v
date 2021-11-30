@@ -27,6 +27,7 @@ module mgmt_core_wrapper (VGND,
     gpio_out_pad,
     gpio_outenb_pad,
     hk_ack_i,
+    hk_cyc_o,
     hk_stb_o,
     mprj_ack_i,
     mprj_cyc_o,
@@ -88,6 +89,7 @@ module mgmt_core_wrapper (VGND,
  output gpio_out_pad;
  output gpio_outenb_pad;
  input hk_ack_i;
+ output hk_cyc_o;
  output hk_stb_o;
  input mprj_ack_i;
  output mprj_cyc_o;
@@ -307,6 +309,7 @@ module mgmt_core_wrapper (VGND,
     .gpio_out_pad(gpio_out_pad),
     .gpio_outenb_pad(gpio_outenb_pad),
     .hk_ack_i(hk_ack_i),
+    .hk_cyc_o(hk_cyc_o),
     .hk_stb_o(hk_stb_o),
     .mem_ena(mem_ena),
     .mprj_ack_i(mprj_ack_i),

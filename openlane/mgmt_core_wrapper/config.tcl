@@ -30,6 +30,8 @@ set ::env(SYNTH_MAX_FANOUT) 6
 
 set ::env(CLOCK_TREE_SYNTH) 0
 
+set ::env(BASE_SDC_FILE) $script_dir/base.sdc 
+
 ## Floorplan
 set ::env(FP_PIN_ORDER_CFG) $script_dir/pin_order.cfg
 set ::env(FP_SIZING) absolute
@@ -101,11 +103,11 @@ set ::env(MACRO_PLACEMENT_CFG) $script_dir/macro_placement.cfg
 
 
 set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/common/defines.v\
 	$script_dir/../../verilog/rtl/mgmt_core_wrapper.v"
 
 set ::env(VERILOG_FILES_BLACKBOX) "\
-	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/common/defines.v\
 	$script_dir/../../verilog/rtl/mgmt_core.v\
 	$script_dir/../../verilog/rtl/DFFRAM.v"
 
