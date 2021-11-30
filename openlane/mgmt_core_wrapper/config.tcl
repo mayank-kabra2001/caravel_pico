@@ -20,11 +20,6 @@ set ::env(DESIGN_IS_CORE) 1
 
 set ::env(ROUTING_CORES) "6"
 set ::env(RUN_KLAYOUT) 0
-
-set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
-	$script_dir/../../verilog/rtl/mgmt_core_wrapper.v"
-
 set ::env(CLOCK_PORT) "core_clk"
 set ::env(CLOCK_NET) ""
 set ::env(CLOCK_PERIOD) "25"
@@ -103,6 +98,11 @@ set ::env(DIODE_INSERTION_STRATEGY) 0
 
 ## Internal Macros
 set ::env(MACRO_PLACEMENT_CFG) $script_dir/macro_placement.cfg
+
+
+set ::env(VERILOG_FILES) "\
+	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/rtl/mgmt_core_wrapper.v"
 
 set ::env(VERILOG_FILES_BLACKBOX) "\
 	$script_dir/../../verilog/rtl/defines.v\

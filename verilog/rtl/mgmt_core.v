@@ -110,6 +110,7 @@ module mgmt_core (
     // Additional wishbone signals for housekeeping
     input [31:0] hk_dat_i,
     output hk_stb_o,
+    output hk_cyc_o,
     input hk_ack_i,
 
     // Module status
@@ -796,6 +797,13 @@ module mgmt_core (
 		gpio_ack_o, uart_ack_o,
 		spimemio_flash_ack_o, stg_ro_ack_o, stg_rw_ack_o, mem_ack_o })
     );
+
+    // NOTE: The interconnect module should generate separate cyc_o signals 
+    // to each slave.  A common cyc_o suffices for this implementation,
+    // although the management core wrapper requires a separate pin in case
+    // other implementations (e.g., LiteX) generate separate cyc_o signals
+    // for each slave.
+    assign hk_cyc_o = cpu_cyc_o;
 
 endmodule
 
