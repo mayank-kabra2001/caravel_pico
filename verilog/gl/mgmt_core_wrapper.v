@@ -1,3 +1,8 @@
+`ifdef GL
+    `include "gl/DFFRAM.v"
+    `include "gl/mgmt_core.v"
+`endif
+
 module mgmt_core_wrapper (VGND,
     VPWR,
     core_clk,
