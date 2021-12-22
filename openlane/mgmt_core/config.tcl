@@ -26,16 +26,20 @@ set ::env(VERILOG_FILES) "\
 	$script_dir/../../verilog/common/defines.v\
 	$script_dir/../../verilog/rtl/mgmt_core.v"
 
+set ::env(DRC_EXCLUDE_CELL_LIST) $script_dir/drc_exclude.cells
+
 set ::env(CLOCK_PORT) "clk"
 set ::env(CLOCK_NET) "clk"
-set ::env(CLOCK_PERIOD) "30"
+set ::env(CLOCK_PERIOD) "25"
 
 set ::env(RESET_PORT) "resetn"
 
 ## Synthesis
-set ::env(SYNTH_STRATEGY) "DELAY 1"
-set ::env(SYNTH_MAX_FANOUT) 8
+set ::env(SYNTH_STRATEGY) "DELAY 0"
+set ::env(SYNTH_MAX_FANOUT) 10
 set ::env(SYNTH_READ_BLACKBOX_LIB) 1
+
+set ::env(SYNTH_DRIVING_CELL) "sky130_fd_sc_hd__inv_1"
 
 set ::env(STA_REPORT_POWER) 0
 
@@ -60,6 +64,7 @@ set ::env(FP_PDN_HPITCH) 130
 
 ## CTS
 set ::env(CTS_CLK_BUFFER_LIST) "sky130_fd_sc_hd__clkbuf_4 sky130_fd_sc_hd__clkbuf_8 sky130_fd_sc_hd__clkbuf_16"
+set ::env(CTS_DISABLE_POST_PROCESSING) 0
 
 ## Placement
 set ::env(PL_RESIZER_DESIGN_OPTIMIZATIONS) 1
@@ -68,7 +73,10 @@ set ::env(PL_RESIZER_TIMING_OPTIMIZATIONS) 1
 set ::env(PL_RESIZER_MAX_SLEW_MARGIN) 5
 set ::env(PL_RESIZER_MAX_CAP_MARGIN) 5
 
-set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.15
+set ::env(PL_RESIZER_HOLD_MAX_BUFFER_PERCENT) 50
+set ::env(PL_RESIZER_SETUP_MAX_BUFFER_PERCENT) 50
+
+set ::env(PL_RESIZER_HOLD_SLACK_MARGIN) 0.8
 
 ## Routing
 set ::env(GLB_RT_ADJUSTMENT) 0
@@ -83,14 +91,17 @@ set ::env(GLB_RT_OVERFLOW_ITERS) 200
 set ::env(GLB_RT_MINLAYER) 2
 set ::env(GLB_RT_MAXLAYER) 6
 
-set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 1
-set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.25
+set ::env(RT_MIN_LAYER) "li1"
+
+set ::env(GLB_RESIZER_TIMING_OPTIMIZATIONS) 0
+set ::env(GLB_RESIZER_HOLD_SLACK_MARGIN) 0.3
 
 set ::env(GLB_RT_OBS) "\
 	li1 0 0 10.16500 740.00,\
 	li1 0 0 2000 10.74000,\
 	li1 0 728.20000 2000.06000 740,\
 	li1 1988.99000 0 2000 740,\
+	met5 38.19000 225.36000 784.35000 227.29500,\
 	li1 89.61500 100.78500 793.48000 538.37000"
 
 ## Internal Macros
@@ -112,3 +123,4 @@ set ::env(DIODE_INSERTION_STRATEGY) 4
 ## DRC
 set ::env(MAGIC_DRC_USE_GDS) 0
 set ::env(QUIT_ON_MAGIC_DRC) 0
+set ::env(QUIT_ON_TIMING_VIOLATIONS) 0
