@@ -28,7 +28,7 @@
  */
 
 `ifdef PICORV32_V
-// `error "mgmt_core.v must be read before picorv32.v!"
+`error "mgmt_core.v must be read before picorv32.v!"
 `endif
 
 `define PICORV32_REGS mgmt_soc_regs
@@ -346,7 +346,7 @@ module mgmt_core (
         .PROGADDR_RESET(PROGADDR_RESET),
         .PROGADDR_IRQ(PROGADDR_IRQ),
         .BARREL_SHIFTER(1),
-        .COMPRESSED_ISA(0),
+        .COMPRESSED_ISA(1),
         .ENABLE_MUL(0),
         .ENABLE_DIV(0),
         .ENABLE_IRQ(1),
