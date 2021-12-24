@@ -467,7 +467,7 @@ help:
 # RCX Extraction
 BLOCKS = $(shell cd openlane && find * -maxdepth 0 -type d)
 RCX_BLOCKS = $(foreach block, $(BLOCKS), rcx-$(block))
-OPENLANE_IMAGE_NAME=efabless/openlane:2021.11.23_01.42.34
+OPENLANE_IMAGE_NAME=efabless/openlane:2021.11.25_01.26.14
 $(RCX_BLOCKS): rcx-% : ./def/%.def 
 	echo "Running RC Extraction on $*"
 	mkdir -p ./def/tmp 
@@ -496,9 +496,17 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 			puts stderr \$$errmsg;\
 			exit 1;\
 		};\
-		read_sdc -echo ./spef/$*.sdc;\
+		read_sdc -echo ./sdc/$*.sdc;\
 		set_propagated_clock [all_clocks];\
 		set rc_values \"mcon 9.249146E-3,via 4.5E-3,via2 3.368786E-3,via3 0.376635E-3,via4 0.00580E-3\";\
+		set l_rc \"li1 1.499e-04 7.176e-02,met1 1.449e-04 8.929e-04,met2 1.331e-04 8.929e-04,met3 1.464e-04 1.567e-04,met4 1.297e-04 1.567e-04,met5 1.501e-04 1.781e-05\";\
+		set layers_rc [split \$$l_rc ","];\
+		foreach layer_rc \$$layers_rc {\
+			set layer_name [lindex \$$layer_rc 0];\
+			set capacitance [lindex \$$layer_rc 1];\
+			set resistance [lindex \$$layer_rc 2];\
+			set_layer_rc -layer \$$layer_name -capacitance \$$capacitance -resistance \$$resistance;\
+		};\
 		set vias_rc [split \$$rc_values ","];\
     	foreach via_rc \$$vias_rc {\
         		set layer_name [lindex \$$via_rc 0];\
@@ -534,10 +542,11 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 		set_cmd_units -time ns -capacitance pF -current mA -voltage V -resistance kOhm -distance um;\
 		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__tt_025C_1v80.lib;\
 		read_liberty $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib;\
-		read_def ./def/$*.def;\
+		read_verilog ./verilog/gl/$*.v;\
+		link_design $*;\
 		read_spef ./spef/$*.spef;\
-		read_sdc -echo ./spef/$*.sdc;\
-		write_sdf ./sdf/$*.sdf;\
+		read_sdc -echo ./sdc/$*.sdc;\
+		write_sdf ./sdf/$*.sdf -divider . -include_typ;\
 		report_checks -fields {capacitance slew input_pins nets fanout} -path_delay min_max -group_count 5;\
 		report_check_types -max_slew -max_capacitance -max_fanout -violators;\
 		report_checks -to [all_outputs] -group_count 1000;\
@@ -546,31 +555,47 @@ $(RCX_BLOCKS): rcx-% : ./def/%.def
 	sh -c "cd /caravel; openroad -exit ./def/tmp/sta_$*.tcl |& tee ./def/tmp/sta_$*.log" 
 
 
-mgmt_core_wrapper_clk_delay: ./def/mgmt_core_wrapper.def 
-	$(MAKE) rcx-mgmt_core_wrapper
+mgmt_core_wrapper_timing: ./verilog/gl/mgmt_core_wrapper.v ./spef/mgmt_core_wrapper.spef ./verilog/gl/mgmt_core.v ./verilog/gl/DFFRAM.v ./sdc/mgmt_core_wrapper.sdc  
+	mkdir -p ./def/tmp
 ## Run OpenSTA
 	echo "\
-		set std_cell_lef ./def/tmp/merged.lef;\
-		if {[catch {read_lef \$$std_cell_lef} errmsg]} {\
-    			puts stderr \$$errmsg;\
-    			exit 1;\
-		};\
-		foreach lef_file [glob ./lef/*.lef] {\
-			if {[catch {read_lef \$$lef_file} errmsg]} {\
-    			puts stderr \$$errmsg;\
-    			exit 1;\
-			}\
-		};\
-		set_cmd_units -time ns -capacitance pF -current mA -voltage V -resistance kOhm -distance um;\
-		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__tt_025C_1v80.lib;\
-		read_def ./def/mgmt_core_wrapper.def;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__ss_100C_1v60.lib;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib;\
+		read_verilog ./verilog/gl/mgmt_core.v;\
+		read_verilog ./verilog/gl/DFFRAM.v;\
+		read_verilog ./verilog/gl/mgmt_core_wrapper.v;\
+		link_design mgmt_core_wrapper;\
+		read_spef -path DFFRAM_0 ./spef/DFFRAM.spef;\
+		read_spef -path core ./spef/mgmt_core.spef;\
 		read_spef ./spef/mgmt_core_wrapper.spef;\
-		read_sdc -echo ./openlane/mgmt_core_wrapper/base.sdc;\
-		report_checks -from [get_ports core_clk] -to [get_pins core/clk] -unconstrained -fields {slew cap input nets fanout} -format full_clock_expanded;\
-		report_checks -from [get_ports core_clk] -to [get_pins DFFRAM/CLK] -unconstrained -fields {slew cap input nets fanout} -format full_clock_expanded;\
-		" > ./def/tmp/clk_delay_mgmt_core_wrapper.tcl 
-	docker run -it -v $(OPENLANE_ROOT):/openlane -v $(PDK_ROOT):$(PDK_ROOT) -v $(PWD):/caravel -e PDK_ROOT=$(PDK_ROOT) -u $(shell id -u $(USER)):$(shell id -g $(USER)) $(OPENLANE_IMAGE_NAME) \
-	sh -c "cd /caravel; openroad -exit ./def/tmp/clk_delay_mgmt_core_wrapper.tcl |& tee ./def/tmp/clk_delay_mgmt_core_wrapper.log" 
+		read_sdc -echo ./sdc/mgmt_core_wrapper.sdc;\
+		report_checks -path_delay min -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 5;\
+		report_checks -path_delay max -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 5;\
+		report_check_types -max_slew -max_capacitance -max_fanout -violators;\
+		report_worst_slack -max ;\
+		report_worst_slack -min ;\
+		report_clock_skew;\
+		" > ./def/tmp/mgmt_core_wrapper_timing.tcl 
+	sta -exit ./def/tmp/mgmt_core_wrapper_timing.tcl | tee ./signoff/mgmt_core_wrapper/mgmt_core_wrapper_timing.log 
+
+mgmt_core_timing:  ./spef/mgmt_core.spef ./verilog/gl/mgmt_core.v  ./sdc/mgmt_core.sdc  
+	mkdir -p ./def/tmp
+## Run OpenSTA
+	echo "\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/$(STD_CELL_LIBRARY)/lib/$(STD_CELL_LIBRARY)__ss_100C_1v60.lib;\
+		read_liberty $(PDK_ROOT)/sky130A/libs.ref/sky130_sram_macros/lib/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib;\
+		read_verilog ./verilog/gl/mgmt_core.v;\
+		link_design mgmt_core;\
+		read_spef ./spef/mgmt_core.spef;\
+		read_sdc -echo ./sdc/mgmt_core.sdc;\
+		report_checks -path_delay min -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 5;\
+		report_checks -path_delay max -fields {slew cap input nets fanout} -format full_clock_expanded -group_count 5;\
+		report_check_types -max_slew -max_capacitance -max_fanout -violators;\
+		report_worst_slack -max ;\
+		report_worst_slack -min ;\
+		report_clock_skew;\
+		" > ./def/tmp/mgmt_core_timing.tcl 
+	sta -exit ./def/tmp/mgmt_core_timing.tcl | tee ./signoff/mgmt_core/mgmt_core_timing.log 
 
 ###########################################################################
 .PHONY: generate_fill

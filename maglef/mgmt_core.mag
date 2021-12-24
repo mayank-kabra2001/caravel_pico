@@ -1,7 +1,7 @@
 magic
 tech sky130A
 magscale 1 2
-timestamp 1640294494
+timestamp 1640312972
 << obsli1 >>
 rect 2024 2159 397900 145809
 << obsm1 >>
@@ -3946,7 +3946,7 @@ port 819 nsew signal output
 string LEFclass BLOCK
 string FIXED_BBOX 0 0 400000 148000
 string LEFview TRUE
-string GDS_FILE ../gds/mgmt_core.gds
+string GDS_FILE /project/openlane/mgmt_core/runs/mgmt_core-latest/results/finishing/mgmt_core.gds
 string GDS_END 125345060
 string GDS_START 17103368
 << end >>

@@ -58,13 +58,16 @@
 	`include "gl/mgmt_protect_hv.v"
 	`include "gl/gpio_control_block.v"
 	`include "gl/gpio_defaults_block.v"
+	`include "gl/gpio_defaults_block_0403.v"
+	`include "gl/gpio_defaults_block_1803.v"
 	`include "gl/gpio_logic_high.v"
 	`include "gl/xres_buf.v"
 	`include "gl/spare_logic_block.v"
 	`include "gl/mgmt_core_wrapper.v"
 	`include "gl/caravel.v"
 	`include "gl/housekeeping.v"
-	`include "gl/caravel_clocking.v"	
+	`include "gl/caravel_clocking.v"
+		
     `else
 	`include "digital_pll.v"
 	`include "caravel_clocking.v"

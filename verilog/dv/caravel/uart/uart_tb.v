@@ -55,7 +55,7 @@ module uart_tb;
 
 	initial begin
 		$dumpfile("uart.vcd");
-		$dumpvars(0, uart_tb);
+		$dumpvars(1, uart_tb);
 
 		$display("Wait for UART o/p");
 		repeat (150) begin
