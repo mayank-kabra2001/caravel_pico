@@ -201,7 +201,7 @@ module mgmt_core_wrapper (VGND,
  wire \mem_wen[2] ;
  wire \mem_wen[3] ;
 
- DFFRAM DFFRAM_0 (.CLK(core_clk),
+ DFFRAM DFFRAM (.CLK(core_clk),
     .EN(mem_ena),
     .VGND(VGND),
     .VPWR(VPWR),

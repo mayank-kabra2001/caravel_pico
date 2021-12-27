@@ -18,12 +18,12 @@ set script_dir [file dirname [file normalize [info script]]]
 set ::env(DESIGN_NAME) DFFRAM
 set ::env(DESIGN_IS_CORE) 1
 
-set ::env(ROUTING_CORES) 8
+set ::env(ROUTING_CORES) 48
 set ::env(RUN_KLAYOUT) 0
 
 # Change if needed
 set ::env(VERILOG_FILES) "\
-	$script_dir/../../verilog/rtl/defines.v\
+	$script_dir/../../verilog/common/defines.v\
 	$script_dir/../../verilog/rtl/DFFRAM.v\
 	$script_dir/../../verilog/rtl/DFFRAMBB.v"
 

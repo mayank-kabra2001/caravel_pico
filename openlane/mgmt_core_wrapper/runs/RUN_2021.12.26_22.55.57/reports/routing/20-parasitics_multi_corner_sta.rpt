@@ -1,0 +1,77 @@
+
+===========================================================================
+report_checks -unconstrained
+============================================================================
+
+======================= Slowest Corner ===================================
+
+Startpoint: core_clk (clock source 'core_clk')
+Endpoint: DFFRAM/CLK (internal pin)
+Path Group: (none)
+Path Type: max
+Corner: ss
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.68    0.57   13.07 v core_clk (in)
+     2    0.16                           core_clk (net)
+                  0.71    0.00   13.07 v DFFRAM/CLK (DFFRAM)
+                                 13.07   data arrival time
+-----------------------------------------------------------------------------
+(Path is unconstrained)
+
+
+
+======================= Typical Corner ===================================
+
+Startpoint: core_clk (clock source 'core_clk')
+Endpoint: DFFRAM/CLK (internal pin)
+Path Group: (none)
+Path Type: max
+Corner: tt
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.35    0.32   12.82 v core_clk (in)
+     2    0.16                           core_clk (net)
+                  0.41    0.00   12.82 v DFFRAM/CLK (DFFRAM)
+                                 12.82   data arrival time
+-----------------------------------------------------------------------------
+(Path is unconstrained)
+
+
+
+======================= Fastest Corner ===================================
+
+Startpoint: core_clk (clock source 'core_clk')
+Endpoint: DFFRAM/CLK (internal pin)
+Path Group: (none)
+Path Type: max
+Corner: ff
+
+Fanout     Cap    Slew   Delay    Time   Description
+-----------------------------------------------------------------------------
+                  0.23    0.24   12.74 v core_clk (in)
+     2    0.16                           core_clk (net)
+                  0.32    0.00   12.74 v DFFRAM/CLK (DFFRAM)
+                                 12.74   data arrival time
+-----------------------------------------------------------------------------
+(Path is unconstrained)
+
+
+
+===========================================================================
+report_checks --slack_max -0.01
+============================================================================
+
+======================= Slowest Corner ===================================
+
+No paths found.
+
+======================= Typical Corner ===================================
+
+No paths found.
+
+======================= Fastest Corner ===================================
+
+No paths found.

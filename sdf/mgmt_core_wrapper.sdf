@@ -1,7 +1,7 @@
 (DELAYFILE
  (SDFVERSION "3.0")
  (DESIGN "mgmt_core_wrapper")
- (DATE "Thu Dec 23 21:38:36 2021")
+ (DATE "Sun Dec 26 22:57:08 2021")
  (VENDOR "Parallax")
  (PROGRAM "STA")
  (VERSION "2.3.1")

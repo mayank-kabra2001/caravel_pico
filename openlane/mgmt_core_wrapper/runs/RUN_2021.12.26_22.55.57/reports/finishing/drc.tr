@@ -1,0 +1,60 @@
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 228.250, 13.400 ) - ( 228.530, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 228.250, 13.390 ) - ( 228.530, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 249.870, 13.400 ) - ( 250.150, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 249.870, 13.390 ) - ( 250.150, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 331.290, 13.400 ) - ( 331.570, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 331.290, 13.390 ) - ( 331.570, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 422.830, 13.400 ) - ( 423.110, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 422.830, 13.390 ) - ( 423.110, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 530.470, 13.400 ) - ( 530.510, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 530.470, 13.390 ) - ( 530.510, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 530.470, 13.400 ) - ( 530.750, 13.445 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 530.470, 13.390 ) - ( 530.750, 13.400 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 461.480, 746.340 ) - ( 461.740, 746.450 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 461.480, 746.310 ) - ( 461.740, 746.340 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 478.960, 746.340 ) - ( 479.220, 746.450 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 478.960, 746.310 ) - ( 479.220, 746.340 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 526.340, 746.340 ) - ( 526.600, 746.450 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 526.340, 746.310 ) - ( 526.600, 746.340 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 2218.280, 12.595 ) - ( 2219.810, 12.650 ) on Layer met2
+  violation type: Metal2_gt_3um_spacing_to_unrelated_m2_lt_0dot28um_met2dot3b
+    srcs: N/A N/A
+    bbox = ( 2219.530, 12.595 ) - ( 2219.810, 12.650 ) on Layer met2
